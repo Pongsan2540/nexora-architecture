@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Login — Glass UI</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+
+  <!-- Glass UI — shared styles (load in this order) -->
+  <link rel="stylesheet" href="../assets/css/tokens.css">
+  <link rel="stylesheet" href="../assets/css/components.css">
+
+  <!-- Page-specific styles -->
+  <link rel="stylesheet" href="../assets/css/blackhole-login.css">
+</head>
+<body>
+
+<div id="pageVeil"></div>
+
+<button class="theme-btn" id="themeBtn">
+  <svg class="i-moon" width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="0.9">
+    <path d="M11.8 8.6A5.2 5.2 0 014.4 1.2a5.2 5.2 0 100 10.4 5.2 5.2 0 007.4-3z"/>
+  </svg>
+  <svg class="i-sun" width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="0.9">
+    <circle cx="6.5" cy="6.5" r="2.4"/>
+    <line x1="6.5" y1="1"    x2="6.5" y2="2.3"/>
+    <line x1="6.5" y1="10.7" x2="6.5" y2="12"/>
+    <line x1="1"   y1="6.5"  x2="2.3" y2="6.5"/>
+    <line x1="10.7" y1="6.5" x2="12"  y2="6.5"/>
+    <line x1="2.7" y1="2.7"  x2="3.6" y2="3.6"/>
+    <line x1="9.4" y1="9.4"  x2="10.3" y2="10.3"/>
+    <line x1="10.3" y1="2.7" x2="9.4" y2="3.6"/>
+    <line x1="3.6"  y1="9.4" x2="2.7" y2="10.3"/>
+  </svg>
+</button>
+
+<div id="blackhole">
+  <div class="enter-btn" id="enterBtn">
+    <div class="enter-line"></div>
+    <span class="enter-word">enter</span>
+    <div class="enter-line"></div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="ov-bg"></div>
+  <div class="ov-stroke"></div>
+  <canvas id="waveCanvas"></canvas>
+
+  <div class="scene">
+    <div class="hint" id="hint">cycle &nbsp;·&nbsp; select</div>
+
+    <div class="deck" id="deck">
+
+      <div class="card" data-id="0">
+        <div class="card-intro">
+          <div class="card-index">I</div>
+          <div class="card-title">welcome<br>back</div>
+          <div class="card-desc">sign in to your account</div>
+          <div class="card-cta">select</div>
+        </div>
+        <div class="card-form">
+          <div class="form-eyebrow">sign in</div>
+          <div class="field"><label>email</label><input type="email" placeholder="name@domain.com" autocomplete="off"></div>
+          <div class="field"><label>password</label><input type="password" placeholder="••••••••"></div>
+          <div class="form-row">
+            <button class="btn-back">← back</button>
+            <button class="btn-go">continue</button>
+          </div>
+        </div>
+        <div class="back-lbl">next</div>
+      </div>
+
+      <div class="card" data-id="1">
+        <div class="card-intro">
+          <div class="card-index">II</div>
+          <div class="card-title">new<br>here</div>
+          <div class="card-desc">create your account</div>
+          <div class="card-cta">select</div>
+        </div>
+        <div class="card-form">
+          <div class="form-eyebrow">create account</div>
+          <div class="field"><label>name</label><input type="text" placeholder="your name" autocomplete="off"></div>
+          <div class="field"><label>email</label><input type="email" placeholder="name@domain.com" autocomplete="off"></div>
+          <div class="field"><label>password</label><input type="password" placeholder="••••••••"></div>
+          <div class="form-row">
+            <button class="btn-back">← back</button>
+            <button class="btn-go">create</button>
+          </div>
+        </div>
+        <div class="back-lbl">next</div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="exit-row">
+    <button id="exitBtn">leave</button>
+  </div>
+</div>
+
+  <!-- Glass UI — shared utilities -->
+  <script src="../assets/js/glassui.js"></script>
+
+  <!-- Page-specific logic -->
+  <script src="../assets/js/blackhole-login.js"></script>
+
+</body>
+</html>

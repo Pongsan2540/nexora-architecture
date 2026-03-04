@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Map — Glass UI</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+
+  <!-- Glass UI — shared styles (load in this order) -->
+  <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.5.2/dist/maplibre-gl.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.5.2/dist/maplibre-gl.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="../assets/css/tokens.css">
+  <link rel="stylesheet" href="../assets/css/components.css">
+
+  <!-- Page-specific styles -->
+  <link rel="stylesheet" href="../assets/css/map.css">
+</head>
+<body>
+
+<div id="pageVeil"></div>
+  <div class="noise"></div>
+  <div id="map">
+    <!-- popup lives here so it's clipped to map and positioned in pixel space -->
+    <div id="pin-popup">
+      <div class="pop-inner">
+        <div class="pc-tag"><span id="pop-tag"></span><button class="pc-close" id="pop-close">✕</button></div>
+        <div class="pc-name" id="pop-name"></div>
+        <div class="pc-sub"  id="pop-sub"></div>
+        <div class="pc-row">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <span id="pop-coord"></span>
+        </div>
+        <div class="pc-row">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+          <span id="pop-dist"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <button class="theme-btn" id="themeBtn">
+    <svg class="i-moon" width="14" height="14" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="0.9"><path d="M11.8 8.6A5.2 5.2 0 014.4 1.2a5.2 5.2 0 100 10.4 5.2 5.2 0 007.4-3z"/></svg>
+    <svg class="i-sun" width="14" height="14" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="0.9">
+      <circle cx="6.5" cy="6.5" r="2.4"/>
+      <line x1="6.5" y1="1" x2="6.5" y2="2.3"/><line x1="6.5" y1="10.7" x2="6.5" y2="12"/>
+      <line x1="1" y1="6.5" x2="2.3" y2="6.5"/><line x1="10.7" y1="6.5" x2="12" y2="6.5"/>
+      <line x1="2.7" y1="2.7" x2="3.6" y2="3.6"/><line x1="9.4" y1="9.4" x2="10.3" y2="10.3"/>
+      <line x1="10.3" y1="2.7" x2="9.4" y2="3.6"/><line x1="3.6" y1="9.4" x2="2.7" y2="10.3"/>
+    </svg>
+  </button>
+
+  <nav class="topNav">
+    <div class="brand">Glass UI <small>map</small></div>
+    <div class="navLinks">
+      <button class="linkBtn" onclick="navigateTo('landing.html')">← Landing</button>
+      <button class="linkBtn" onclick="navigateTo('blackhole-login.html')">Login</button>
+    </div>
+  </nav>
+
+  <!-- Side Panel -->
+  <div class="panel">
+    <div class="glass search-wrap">
+      <div class="search-inner">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        <input type="text" placeholder="Search places…" id="searchInput"/>
+      </div>
+    </div>
+    <div class="glass loc-list">
+      <div class="loc-head">Saved Places</div>
+      <div class="loc-items" id="locItems"></div>
+    </div>
+    <div class="glass info-card" id="infoCard">
+      <div class="info-card-head">
+        <div><div class="info-title" id="infoTitle">—</div><div class="info-sub" id="infoSub">—</div></div>
+        <button class="info-close" id="infoClose">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="info-divider"></div>
+      <div class="info-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg><span id="infoCoord">—</span></div>
+      <div class="info-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg><span id="infoTime">—</span></div>
+      <div class="info-tag" id="infoTag">—</div>
+    </div>
+  </div>
+
+  <!-- Right Controls -->
+  <div class="ctrl-group">
+    <button class="zoom-btn" id="btnZoomIn">+</button>
+    <button class="zoom-btn" id="btnZoomOut">−</button>
+    <div class="ctrl-sep"></div>
+    <button class="ctrl-btn" id="btn3d">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+      3D
+    </button>
+    <button class="ctrl-btn" id="btnReset">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+      Reset
+    </button>
+  </div>
+
+  <!-- Layer Switcher — bottom centre -->
+  <div class="layer-bar">
+    <button class="lbtn active" data-key="dark">
+      <div class="lbtn-thumb thumb-dark"></div>
+      <span class="lbtn-label">Dark</span>
+    </button>
+    <button class="lbtn" data-key="streets">
+      <div class="lbtn-thumb thumb-streets"></div>
+      <span class="lbtn-label">Streets</span>
+    </button>
+    <button class="lbtn" data-key="topo">
+      <div class="lbtn-thumb thumb-topo"></div>
+      <span class="lbtn-label">Topo</span>
+    </button>
+    <button class="lbtn" data-key="positron">
+      <div class="lbtn-thumb thumb-positron"></div>
+      <span class="lbtn-label">Minimal</span>
+    </button>
+    <button class="lbtn" data-key="liberty">
+      <div class="lbtn-thumb thumb-liberty"></div>
+      <span class="lbtn-label">Liberty</span>
+    </button>
+  </div>
+
+  <!-- Coord bar bottom-right -->
+  <div class="coord-bar" id="coordBar">13.7563° N  100.5018° E</div>
+
+  <!-- Right Panel — Event Records (always visible, mirrors left panel) -->
+  <div class="panel-right">
+    <div class="glass loc-list">
+      <div class="ev-head">Event Records</div>
+      <div class="ev-items" id="evItems"></div>
+    </div>
+  </div>
+
+  <!-- Event Detail Modal -->
+  <div class="ev-modal-backdrop" id="evBackdrop"></div>
+  <div class="ev-modal" id="evModal">
+    <img class="ev-modal-img" id="evModalImg" src="" alt=""/>
+    <div class="ev-modal-body">
+      <div class="ev-modal-row1">
+        <div class="ev-modal-title" id="evModalTitle">—</div>
+        <button class="ev-modal-close" id="evModalClose">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="ev-modal-place" id="evModalPlace">—</div>
+      <div class="ev-modal-grid">
+        <div class="ev-modal-cell">
+          <div class="ev-modal-cell-label">Date & Time</div>
+          <div class="ev-modal-cell-val" id="evModalTime">—</div>
+        </div>
+        <div class="ev-modal-cell">
+          <div class="ev-modal-cell-label">Category</div>
+          <div class="ev-modal-cell-val" id="evModalBadge">—</div>
+        </div>
+        <div class="ev-modal-cell">
+          <div class="ev-modal-cell-label">Venue</div>
+          <div class="ev-modal-cell-val" id="evModalVenue">—</div>
+        </div>
+        <div class="ev-modal-cell">
+          <div class="ev-modal-cell-label">Admission</div>
+          <div class="ev-modal-cell-val" id="evModalAdm">—</div>
+        </div>
+      </div>
+      <div class="ev-modal-divider"></div>
+      <div class="ev-modal-desc" id="evModalDesc">—</div>
+      <div class="ev-modal-tags" id="evModalTags"></div>
+    </div>
+  </div>
+
+  <!-- Glass UI — shared utilities -->
+  <script src="../assets/js/glassui.js"></script>
+
+  <!-- Page-specific logic -->
+  <script src="../assets/js/map.js"></script>
+
+</body>
+</html>

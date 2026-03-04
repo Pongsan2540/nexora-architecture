@@ -1,0 +1,247 @@
+/* blackhole-login.css — Page-specific styles */
+/* Shared tokens: ../css/tokens.css */
+/* Shared components: ../css/components.css */
+
+/* ── base ── */
+html, body {
+  height: 100%;
+  background: var(--bg);
+  overflow: hidden;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-weight: 500;
+  -webkit-font-smoothing: antialiased;
+  transition: background 700ms;
+}
+
+/* ── canvas ── */
+#blackhole { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+/* ━━━ THEME TOGGLE ━━━ */
+.theme-btn {
+  position: fixed; top: 22px; right: 22px; z-index: 200;
+  width: 30px; height: 30px;
+  background: none; border: none; padding: 0;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--t2);
+  transition: color 400ms;
+}
+.theme-btn:hover { color: var(--t1); }
+.theme-btn svg { position: absolute; transition: opacity 300ms, transform 360ms; }
+[data-theme="dark"]  .i-sun  { opacity: 0; transform: rotate(70deg) scale(0.3); }
+[data-theme="dark"]  .i-moon { opacity: 1; transform: rotate(0deg)  scale(1);   }
+[data-theme="light"] .i-moon { opacity: 0; transform: rotate(-70deg) scale(0.3); }
+[data-theme="light"] .i-sun  { opacity: 1; transform: rotate(0deg)  scale(1);   }
+
+/* ━━━ ENTER ━━━ */
+.enter-btn {
+  position: relative; z-index: 10;
+  width: 220px; height: 220px; border-radius: 50%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+  cursor: pointer; transition: opacity 700ms;
+}
+.enter-btn.hidden { opacity: 0; pointer-events: none; }
+
+.enter-word {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-size: 16px; font-weight: 600; font-style: normal;
+  letter-spacing: 0.22em; color: var(--t2);
+  transition: color 400ms;
+}
+.enter-line {
+  width: 24px; height: 1px; background: var(--t2);
+  transition: width 400ms, background 400ms;
+}
+.enter-btn:hover .enter-word { color: var(--t1); }
+.enter-btn:hover .enter-line { width: 36px; background: var(--t1); }
+
+/* ━━━ OVERLAY ━━━ */
+.overlay {
+  position: fixed; inset: 0; z-index: 20;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity 600ms;
+}
+.overlay.show { opacity: 1; pointer-events: all; }
+
+.ov-bg {
+  position: absolute; inset: 0;
+  background: var(--ov); backdrop-filter: blur(28px);
+  transition: background 700ms;
+}
+
+/* overlay grid drawn entirely by canvas — no CSS grid needed */
+
+/* single vertical brush stroke — right side asymmetric */
+.ov-stroke {
+  position: absolute; top: 0; bottom: 0;
+  right: 18%; width: 1px;
+  background: linear-gradient(to bottom, transparent 5%, var(--bd) 30%, var(--bd) 70%, transparent 95%);
+  opacity: 0.4;
+}
+
+/* ── wave canvas ── */
+#waveCanvas {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  pointer-events: none; z-index: 1;
+  opacity: 0; transition: opacity 1200ms ease;
+}
+#waveCanvas.visible { opacity: 1; }
+
+/* ── scene ── */
+.scene { position: relative; z-index: 30; display: flex; flex-direction: column; align-items: center; }
+
+.hint {
+  font-size: 10px; font-weight: 300; letter-spacing: 0.38em;
+  color: var(--t2); text-transform: lowercase;
+  margin-bottom: 40px; transition: opacity 300ms; user-select: none;
+}
+.hint.gone { opacity: 0; pointer-events: none; }
+
+/* ━━━ DECK ━━━ */
+.deck {
+  position: relative; width: 310px; height: 400px;
+  perspective: 900px; perspective-origin: 50% 118%;
+}
+
+/* ━━━ CARD ━━━ */
+.card {
+  position: absolute; inset: 0;
+  padding: 44px 40px;
+  border: 1px solid var(--bd);
+  transform-origin: 50% 122%;
+  cursor: pointer; user-select: none; overflow: hidden;
+  transition: background 700ms, border-color 600ms;
+}
+.card[data-id="0"] { background: var(--c0); }
+.card[data-id="1"] { background: var(--c1); }
+
+/* dark mode: cards are now light, so override text to dark tones */
+[data-theme="dark"] .card-index   { color: #6b6058; }
+[data-theme="dark"] .card-title   { color: #1a1614; }
+[data-theme="dark"] .card-desc    { color: #5a524a; }
+[data-theme="dark"] .card-cta     { color: #8a7e6e; }
+[data-theme="dark"] .back-lbl     { color: #8a7e6e; }
+[data-theme="dark"] .form-eyebrow { color: #8a7e6e; }
+[data-theme="dark"] .field label  { color: #7a6e62; }
+[data-theme="dark"] .field input  { color: #1a1614; }
+[data-theme="dark"] .field input::placeholder { color: #b0a898; }
+[data-theme="dark"] .field input  { border-bottom-color: rgba(0,0,0,0.12); }
+[data-theme="dark"] .field input:focus { border-bottom-color: rgba(0,0,0,0.28); }
+[data-theme="dark"] .btn-back     { color: #8a7e6e; }
+[data-theme="dark"] .btn-back:hover { color: #4a4038; }
+[data-theme="dark"] .btn-go       { color: #4a4038; border-bottom-color: rgba(0,0,0,0.15); }
+[data-theme="dark"] .btn-go:hover { color: #1a1614; border-bottom-color: rgba(0,0,0,0.35); }
+
+/* hairline — single pixel top, no glow */
+.card::after {
+  content: ''; position: absolute; top: 0; left: 40px; right: 40px; height: 1px;
+  opacity: 0; transition: opacity 400ms;
+}
+.card[data-id="0"]::after { background: var(--c0a); }
+.card[data-id="1"]::after { background: var(--c1a); }
+.card.top::after { opacity: 0.3; }
+
+/* ── text ── */
+.card-index {
+  font-size: 10px; font-weight: 300; letter-spacing: 0.22em;
+  color: var(--t2); margin-bottom: 32px;
+  transition: color 600ms;
+}
+
+.card-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 42px; font-weight: 700; font-style: normal;
+  color: var(--t0); letter-spacing: -0.02em; line-height: 1.25;
+  margin-bottom: 14px; transition: color 700ms;
+}
+
+.card-desc {
+  font-size: 14px; font-weight: 500; color: var(--t1);
+  line-height: 1.9; letter-spacing: 0.02em;
+  margin-bottom: 44px; transition: color 700ms;
+}
+
+.card-cta {
+  font-size: 10px; letter-spacing: 0.32em; color: var(--t2);
+  transition: color 300ms, letter-spacing 300ms;
+}
+.card[data-id="0"].top:hover .card-cta { color: var(--c0a); letter-spacing: 0.42em; }
+.card[data-id="1"].top:hover .card-cta { color: var(--c1a); letter-spacing: 0.42em; }
+
+.back-lbl {
+  position: absolute; bottom: 36px; right: 40px;
+  font-size: 9px; letter-spacing: 0.28em; color: var(--t2);
+  opacity: 0; transition: opacity 220ms;
+}
+.card:not(.top):hover .back-lbl { opacity: 0.55; }
+
+/* ── form ── */
+.card-form { display: none; }
+.card.open .card-intro { display: none; }
+.card.open .card-form  { display: block; }
+.card.open { cursor: default; }
+.card.open .btn-back,
+.card.open .btn-go,
+.card.open input { pointer-events: all; }
+
+.form-eyebrow {
+  font-size: 10px; font-weight: 300; letter-spacing: 0.3em;
+  color: var(--t2); margin-bottom: 30px;
+  transition: color 600ms;
+}
+
+.field { margin-bottom: 20px; }
+.field label {
+  display: block; font-size: 11px; font-weight: 600;
+  letter-spacing: 0.12em; color: var(--t2);
+  margin-bottom: 10px; transition: color 600ms;
+}
+.field input {
+  width: 100%; background: transparent; border: none;
+  border-bottom: 1px solid var(--bd);
+  padding: 7px 0; color: var(--t0);
+  font-family: 'Inter', sans-serif;
+  font-size: 15px; font-weight: 500; letter-spacing: 0.08em;
+  outline: none; transition: border-color 300ms, color 700ms;
+}
+.card[data-id="0"] .field input { caret-color: var(--c0a); }
+.card[data-id="1"] .field input { caret-color: var(--c1a); }
+.field input::placeholder { color: var(--t3); }
+.field input:focus { border-bottom-color: var(--bd-hi); }
+
+.form-row {
+  margin-top: 28px;
+  display: flex; align-items: flex-end; justify-content: space-between;
+}
+
+.btn-back {
+  background: none; border: none; font-family: 'Inter', sans-serif;
+  font-size: 10px; font-weight: 300; letter-spacing: 0.28em;
+  color: var(--t2); cursor: pointer; padding: 0;
+  transition: color 260ms; pointer-events: none;
+}
+.btn-back:hover { color: var(--t1); }
+
+.btn-go {
+  background: none; border: none; font-family: 'Inter', sans-serif;
+  font-size: 15px; font-weight: 600; font-style: normal;
+  letter-spacing: 0.14em;
+  color: var(--t1); cursor: pointer; padding: 0;
+  border-bottom: 1px solid var(--bd);
+  padding-bottom: 3px;
+  transition: color 260ms, border-color 260ms; pointer-events: none;
+}
+.btn-go:hover { color: var(--t0); border-bottom-color: var(--bd-hi); }
+
+/* ── exit ── */
+.exit-row {
+  position: absolute; bottom: 24px; left: 0; right: 0;
+  z-index: 40; text-align: center;
+}
+.exit-row button {
+  background: none; border: none; font-family: 'Inter', sans-serif;
+  font-size: 10px; font-weight: 300; letter-spacing: 0.3em;
+  color: var(--t2); cursor: pointer; transition: color 260ms;
+}
+.exit-row button:hover { color: var(--t1); }

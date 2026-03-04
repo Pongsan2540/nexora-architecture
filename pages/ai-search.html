@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>AI Search — Glass UI</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+
+  <!-- Glass UI — shared styles (load in this order) -->
+  <link rel="stylesheet" href="../assets/css/tokens.css">
+  <link rel="stylesheet" href="../assets/css/components.css">
+
+  <!-- Page-specific styles -->
+  <link rel="stylesheet" href="../assets/css/ai-search.css">
+</head>
+<body>
+
+<div id="pageVeil"></div>
+<div class="noise"></div>
+<canvas id="bgCanvas" style="position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:1;"></canvas>
+<div class="mock-banner">⚡ Demo Mode — Simulated AI responses</div>
+
+<nav class="nav">
+  <div class="nav-brand" onclick="navigateTo('landing.html')">
+    <div class="nav-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="3,11 12,2 21,11 21,22 3,22"/></svg></div>Glass UI
+  </div>
+  <div class="nav-links">
+    <div class="nl" onclick="navigateTo('landing.html')">Home</div>
+    <div class="nl" onclick="navigateTo('dashboard.html')">Dashboard</div>
+    <div class="nl" onclick="navigateTo('map.html')">Map</div>
+    <div class="nl here">AI Search</div>
+  </div>
+  <button class="tbtn" id="themeBtn">
+    <svg class="i-moon" width="15" height="15" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="0.9"><path d="M11.8 8.6A5.2 5.2 0 014.4 1.2a5.2 5.2 0 100 10.4 5.2 5.2 0 007.4-3z"/></svg>
+    <svg class="i-sun" width="15" height="15" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="0.9"><circle cx="6.5" cy="6.5" r="2.4"/><line x1="6.5" y1="1" x2="6.5" y2="2.3"/><line x1="6.5" y1="10.7" x2="6.5" y2="12"/><line x1="1" y1="6.5" x2="2.3" y2="6.5"/><line x1="10.7" y1="6.5" x2="12" y2="6.5"/><line x1="2.7" y1="2.7" x2="3.6" y2="3.6"/><line x1="9.4" y1="9.4" x2="10.3" y2="10.3"/><line x1="10.3" y1="2.7" x2="9.4" y2="3.6"/><line x1="3.6" y1="9.4" x2="2.7" y2="10.3"/></svg>
+  </button>
+</nav>
+
+<div class="split">
+  <div class="left">
+    <div class="feed" id="feed">
+      <div class="feed-inner" id="feedInner">
+        <!-- EMPTY STATE -->
+        <div class="empty-state" id="emptyState">
+          <div class="empty-avatar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13,2 3,14 12,14 11,22 21,10 12,10"/></svg>
+          </div>
+          <div class="empty-title">สวัสดี, ผมคือ Glass AI 👋</div>
+          <div class="empty-sub">ถามอะไรเกี่ยวกับกรุงเทพก็ได้เลยนะ ร้านอาหาร, อีเวนต์, สถานที่ท่องเที่ยว หรืออะไรก็ตาม</div>
+          <div class="empty-chips">
+            <div class="echip" data-q="Best street food near Chatuchak">🍜 Street food near Chatuchak</div>
+            <div class="echip" data-q="Events at Wat Phra Kaew this month">🏮 Events at Wat Phra Kaew</div>
+            <div class="echip" data-q="Night markets in Bangkok">🌙 Night markets Bangkok</div>
+            <div class="echip" data-q="Activities at Lumpini Park">🌿 Lumpini Park</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="input-bar">
+      <div class="ibox" id="ibox">
+        <div class="irow">
+          <textarea class="iinput" id="iinput" placeholder="พิมพ์ถามได้เลย…" rows="1" autocomplete="off"></textarea>
+          <button class="ibtn" id="ibtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22,2 15,22 11,13 2,9"/></svg>
+          </button>
+        </div>
+        <div class="ihint">กด <kbd>Enter</kbd> ส่งข้อความ · <kbd>Shift+Enter</kbd> ขึ้นบรรทัดใหม่</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="right">
+    <div class="rtabs">
+      <div class="rtab on" id="tg" onclick="rswitch('graph')">🕸 Thought Web</div>
+      <div class="rtab" id="tt" onclick="rswitch('timeline')">🛤 Journey</div>
+    </div>
+    <div class="rpanel on" id="pg">
+      <canvas id="gCanvas"></canvas>
+      <div class="gleg">
+        <div class="gli"><div class="gld" style="background:#8a7e6e"></div>Query</div>
+        <div class="gli"><div class="gld" style="background:#6a7a68"></div>Concept</div>
+        <div class="gli"><div class="gld" style="background:rgba(138,126,110,.5)"></div>Source</div>
+        <div class="gli"><div class="gld" style="background:#c0b890"></div>Answer</div>
+      </div>
+    </div>
+    <div class="rpanel" id="pt">
+      <div class="tl-wrap" id="tlWrap">
+        <div class="tl-empty" id="tlEmpty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+          Your search journey<br>will appear here
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <!-- Glass UI — shared utilities -->
+  <script src="../assets/js/glassui.js"></script>
+
+  <!-- Page-specific logic -->
+  <script src="../assets/js/ai-search.js"></script>
+
+</body>
+</html>

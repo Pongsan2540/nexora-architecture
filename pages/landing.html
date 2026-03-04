@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Home — Glass UI</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+
+  <!-- Glass UI — shared styles (load in this order) -->
+  <link rel="stylesheet" href="../assets/css/tokens.css">
+  <link rel="stylesheet" href="../assets/css/components.css">
+
+  <!-- Page-specific styles -->
+  <link rel="stylesheet" href="../assets/css/landing.css">
+</head>
+<body>
+
+<div id="pageVeil"></div>
+  <canvas id="bgCanvas" style="position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0"></canvas>
+  <div class="noise"></div>
+
+  <button class="theme-btn" id="themeBtn" aria-label="Toggle theme">
+    <svg class="i-moon" width="14" height="14" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="0.9">
+      <path d="M11.8 8.6A5.2 5.2 0 014.4 1.2a5.2 5.2 0 100 10.4 5.2 5.2 0 007.4-3z"/>
+    </svg>
+    <svg class="i-sun" width="14" height="14" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="0.9">
+      <circle cx="6.5" cy="6.5" r="2.4"/>
+      <line x1="6.5" y1="1"    x2="6.5" y2="2.3"/>
+      <line x1="6.5" y1="10.7" x2="6.5" y2="12"/>
+      <line x1="1"   y1="6.5"  x2="2.3" y2="6.5"/>
+      <line x1="10.7" y1="6.5" x2="12"  y2="6.5"/>
+      <line x1="2.7" y1="2.7"  x2="3.6" y2="3.6"/>
+      <line x1="9.4" y1="9.4"  x2="10.3" y2="10.3"/>
+      <line x1="10.3" y1="2.7" x2="9.4" y2="3.6"/>
+      <line x1="3.6"  y1="9.4" x2="2.7" y2="10.3"/>
+    </svg>
+  </button>
+
+  <div class="topNav">
+    <div class="brand">Glass UI <small>landing</small></div>
+    <button class="linkBtn" onclick="navigateBack()">← Back to login</button>
+  </div>
+
+  <div class="wrap">
+    <div class="shell">
+      <section >
+        <div class="pill"><span class="dot"></span><span>New: AI-powered chord recognition</span></div>
+
+        <h1 class="h1">Master guitar with<br><span class="accent">interactive</span> lessons</h1>
+
+        <p class="lead">
+          Learn at your own pace with our visual fretboard trainer.
+          From beginner chords to advanced techniques — all in one platform.
+        </p>
+
+        <div class="ctaRow">
+          <button class="btn primary">
+            Start Learning
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12h12"></path><path d="M13 6l6 6-6 6"></path>
+            </svg>
+          </button>
+          <button class="btn">See How It Works</button>
+        </div>
+
+        <div class="stats">
+          <div class="stat"><b>50K+</b><span>Active Students</span></div>
+          <div class="stat"><b>200+</b><span>Video Lessons</span></div>
+          <div class="stat"><b>4.9</b><span>App Rating</span></div>
+        </div>
+      </section>
+
+      <aside class="card">
+        <div class="demoHead">
+          <div class="demoTitle">Try it — Click a chord</div>
+          <div class="chips">
+            <div class="chip active">C</div>
+            <div class="chip">G</div>
+            <div class="chip">Am</div>
+            <div class="chip">F</div>
+            <div class="chip">D</div>
+            <div class="chip">Em</div>
+          </div>
+        </div>
+
+        <div class="demoBody">
+          <div class="fret">
+            <div class="fretGrid">
+              <i class="note n1"></i><i class="note n2"></i><i class="note n3"></i>
+            </div>
+          </div>
+
+          <div class="demoHint">Click frets to play notes</div>
+
+          <div class="demoFoot">
+            <div class="togRow">
+              <button class="btn" style="padding:9px 12px;border-radius:12px;font-size:12px">Clear</button>
+              <span>Sound</span>
+              <div class="toggle" aria-hidden="true"></div>
+            </div>
+
+            <div class="player">
+              <button class="play" aria-label="Play">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+              </button>
+              <div style="min-width:110px; font-weight:900; font-size:12px; color: var(--t0)">Greensleeves</div>
+              <div class="bar"><i></i></div>
+              <select class="select" aria-label="Song">
+                <option>Greensleeves</option>
+                <option>Canon in D</option>
+                <option>Blues Jam</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- ── Features 3D Carousel ── -->
+  <section class="features-section">
+    <div class="features-inner">
+      <div class="features-top">
+        <div>
+          <div class="pill"><span class="dot"></span><span>Everything you need</span></div>
+          <h2 class="features-h2">Built for serious<br><span class="accent">learners</span></h2>
+        </div>
+      </div>
+    </div>
+
+    <div class="carousel-stage" id="carouselStage">
+
+      <div class="c-card" data-idx="0">
+        <div class="c-img">
+          <div class="c-img-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg></div>
+          <div class="c-img-bar"></div>
+        </div>
+        <div class="c-body">
+          <div class="c-num">01 / 06</div>
+          <div class="c-title">Interactive Fretboard</div>
+          <p class="c-desc">Tap any fret to hear the note. Visual feedback shows exactly where to place your fingers in real time.</p>
+          <div class="c-tag">Visual Learning</div>
+        </div>
+      </div>
+
+      <div class="c-card" data-idx="1">
+        <div class="c-img">
+          <div class="c-img-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><circle cx="12" cy="12" r="10"/><polygon points="10,8 16,12 10,16" fill="currentColor" opacity=".5"/></svg></div>
+          <div class="c-img-bar"></div>
+        </div>
+        <div class="c-body">
+          <div class="c-num">02 / 06</div>
+          <div class="c-title">200+ Video Lessons</div>
+          <p class="c-desc">From open chords to sweep picking — focused lessons you can replay at any pace.</p>
+          <div class="c-tag">Structured Path</div>
+        </div>
+      </div>
+
+      <div class="c-card" data-idx="2">
+        <div class="c-img">
+          <div class="c-img-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div>
+          <div class="c-img-bar"></div>
+        </div>
+        <div class="c-body">
+          <div class="c-num">03 / 06</div>
+          <div class="c-title">AI Chord Recognition</div>
+          <p class="c-desc">Play into your mic — AI instantly identifies chords and tracks your accuracy over time.</p>
+          <div class="c-tag">AI-Powered</div>
+        </div>
+      </div>
+
+      <div class="c-card" data-idx="3">
+        <div class="c-img">
+          <div class="c-img-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></div>
+          <div class="c-img-bar"></div>
+        </div>
+        <div class="c-body">
+          <div class="c-num">04 / 06</div>
+          <div class="c-title">Community Challenges</div>
+          <p class="c-desc">Weekly jams, leaderboards, and peer feedback from 50,000+ active players worldwide.</p>
+          <div class="c-tag">Community</div>
+        </div>
+      </div>
+
+      <div class="c-card" data-idx="4">
+        <div class="c-img">
+          <div class="c-img-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+          <div class="c-img-bar"></div>
+        </div>
+        <div class="c-body">
+          <div class="c-num">05 / 06</div>
+          <div class="c-title">Progress Tracking</div>
+          <p class="c-desc">Speed, accuracy, and practice streaks — know exactly what to work on next.</p>
+          <div class="c-tag">Analytics</div>
+        </div>
+      </div>
+
+      <div class="c-card" data-idx="5">
+        <div class="c-img">
+          <div class="c-img-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>
+          <div class="c-img-bar"></div>
+        </div>
+        <div class="c-body">
+          <div class="c-num">06 / 06</div>
+          <div class="c-title">Song Library</div>
+          <p class="c-desc">500+ songs with scrolling tabs, backing tracks, and adjustable tempo.</p>
+          <div class="c-tag">500+ Songs</div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="feat-nav">
+      <div class="feat-arrows">
+        <button class="feat-arrow" id="featPrev" aria-label="Previous">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+      </div>
+      <div class="feat-dots" id="featDots">
+        <div class="feat-dot active"></div>
+        <div class="feat-dot"></div>
+        <div class="feat-dot"></div>
+        <div class="feat-dot"></div>
+        <div class="feat-dot"></div>
+        <div class="feat-dot"></div>
+      </div>
+      <div class="feat-arrows">
+        <button class="feat-arrow" id="featNext" aria-label="Next">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- Glass UI — shared utilities -->
+  <script src="../assets/js/glassui.js"></script>
+
+  <!-- Page-specific logic -->
+  <script src="../assets/js/landing.js"></script>
+
+</body>
+</html>
