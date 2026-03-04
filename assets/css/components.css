@@ -1,0 +1,178 @@
+/* ============================================================
+   components.css — Glass UI Shared Components
+   Reusable UI components: nav, theme toggle, buttons,
+   glass cards, form inputs, badges.
+   Import after tokens.css.
+   ============================================================ */
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   THEME TOGGLE
+   Usage: <button class="theme-btn" id="themeBtn">...</button>
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.theme-btn {
+  width: 34px; height: 34px;
+  background: none; border: none; padding: 0;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--t2);
+  transition: color 400ms;
+}
+.theme-btn:hover { color: var(--t1); }
+.theme-btn svg { position: absolute; transition: opacity 300ms, transform 360ms; }
+[data-theme="dark"]  .i-sun  { opacity: 0; transform: rotate(70deg)  scale(0.3); }
+[data-theme="dark"]  .i-moon { opacity: 1; transform: rotate(0deg)   scale(1);   }
+[data-theme="light"] .i-moon { opacity: 0; transform: rotate(-70deg) scale(0.3); }
+[data-theme="light"] .i-sun  { opacity: 1; transform: rotate(0deg)   scale(1);   }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   TOP NAV BAR
+   Usage: <nav class="top-nav">...</nav>
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.top-nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  height: 54px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 22px;
+  background: var(--side);
+  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  border-bottom: 1px solid var(--bd);
+}
+
+.nav-brand {
+  display: flex; align-items: center; gap: 9px;
+  font-size: 13px; font-weight: 800; letter-spacing: -.02em;
+  color: var(--t0); cursor: pointer; text-decoration: none;
+}
+.nav-mark {
+  width: 26px; height: 26px; border-radius: 8px;
+  background: linear-gradient(140deg, var(--c0a), var(--c1a));
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.nav-mark svg { width: 12px; height: 12px; color: #0f0e0c; }
+
+.nav-links { display: flex; gap: 3px; }
+.nav-link {
+  padding: 6px 12px; border-radius: 9px;
+  font-size: 12px; font-weight: 600; color: var(--t2);
+  cursor: pointer; text-decoration: none;
+  transition: all 140ms; border: 1px solid transparent;
+}
+.nav-link:hover { color: var(--t1); background: rgba(255,255,255,.04); }
+.nav-link.active {
+  color: var(--c0a); background: var(--c0b);
+  border-color: rgba(138,126,110,.20);
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   GLASS CARD
+   Usage: <div class="card">...</div>
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.card {
+  background: var(--glass);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--bd);
+  border-radius: 16px;
+  box-shadow: var(--sh1);
+}
+.card-hi {
+  background: var(--glass-hi);
+  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--bd);
+  border-radius: 16px;
+  box-shadow: var(--sh1);
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   BUTTONS
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+/* Primary */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 10px 20px; border-radius: 10px;
+  font-size: 13px; font-weight: 700; color: var(--t0);
+  background: rgba(255,255,255,.06);
+  border: 1px solid var(--bd);
+  cursor: pointer; text-decoration: none;
+  transition: all 160ms;
+}
+.btn:hover { background: rgba(255,255,255,.10); border-color: var(--bd-hi); transform: translateY(-1px); }
+
+/* Accent (iron gradient) */
+.btn-accent {
+  background: linear-gradient(135deg, var(--c0a), var(--c1a));
+  border: none; color: #0f0e0c;
+}
+.btn-accent:hover { opacity: .9; transform: translateY(-1px); }
+
+/* Ghost */
+.btn-ghost { background: transparent; }
+.btn-ghost:hover { background: var(--c0b); border-color: rgba(138,126,110,.3); color: var(--c0a); }
+
+/* Small */
+.btn-sm { padding: 6px 12px; font-size: 11px; border-radius: 8px; }
+
+/* Icon button */
+.btn-icon {
+  width: 36px; height: 36px; padding: 0;
+  border-radius: 10px;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   FORM INPUTS
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.input {
+  width: 100%;
+  padding: 11px 14px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid var(--bd);
+  border-radius: 10px;
+  font-size: 14px; color: var(--t0);
+  font-family: inherit;
+  outline: none;
+  transition: border-color 200ms, box-shadow 200ms;
+}
+.input::placeholder { color: var(--t2); }
+.input:focus {
+  border-color: rgba(138,126,110,.45);
+  box-shadow: 0 0 0 3px rgba(138,126,110,.08);
+}
+.input-label {
+  display: block; margin-bottom: 6px;
+  font-size: 11px; font-weight: 700;
+  letter-spacing: .06em; text-transform: uppercase; color: var(--t2);
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   BADGE / TAG CHIP
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 9px; border-radius: 999px;
+  font-size: 10px; font-weight: 800;
+  letter-spacing: .05em; text-transform: uppercase;
+}
+.badge-iron   { background: var(--c0b); color: var(--c0a); border: 1px solid rgba(138,126,110,.22); }
+.badge-moss   { background: var(--c1b); color: var(--c1a); border: 1px solid rgba(106,122,104,.22); }
+.badge-subtle { background: rgba(255,255,255,.06); color: var(--t1); border: 1px solid var(--bd); }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   DIVIDER
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.divider {
+  display: flex; align-items: center; gap: 12px;
+  font-size: 10px; font-weight: 700;
+  letter-spacing: .07em; text-transform: uppercase; color: var(--t2);
+}
+.divider::before, .divider::after {
+  content: ''; flex: 1; height: 1px; background: var(--bd);
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   ANIMATIONS
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+@keyframes fadeUp   { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+@keyframes fadeIn   { from { opacity:0; } to { opacity:1; } }
+@keyframes blink    { 0%,100% { opacity:1; } 50% { opacity:0; } }
+@keyframes pulse    { 0%,100% { opacity:.4; } 50% { opacity:1; } }
+@keyframes bounce   { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-5px); } }

@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Register — Glass UI</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+
+  <!-- Glass UI — shared styles (load in this order) -->
+  <link rel="stylesheet" href="../assets/css/tokens.css">
+  <link rel="stylesheet" href="../assets/css/components.css">
+
+  <!-- Page-specific styles -->
+  <link rel="stylesheet" href="../assets/css/register.css">
+</head>
+<body>
+
+<div id="pageVeil"></div>
+<div class="noise"></div>
+<canvas id="bgCanvas" style="position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:2;"></canvas>
+<input type="file" id="fileModal"  accept="image/*" style="display:none" onchange="onFileModal(event)"/>
+<input type="file" id="fileDetail" accept="image/*" style="display:none" onchange="onFileDetail(event)"/>
+
+<div class="shell">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logomark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="3,11 12,2 21,11 21,22 3,22"/></svg></div>
+    <div><div class="sb-title">Glass UI</div><div style="font-size:10px;font-weight:600;color:var(--t2);letter-spacing:.04em;margin-top:1px;">Dashboard</div></div>
+  </div>
+  <div class="sb-scroll">
+    <div class="sb-section">Main</div>
+    <div class="sb-item" onclick="navigateTo('dashboard.html')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Overview</div>
+    <div class="sb-item" onclick="navigateTo('map.html')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1,6 1,22 8,18 16,22 23,18 23,2 16,6 8,2"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>Map View</div>
+    <div class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Events<span class="sb-pill">18</span></div>
+    <div class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Visitors</div>
+    <div class="sb-section">Analytics</div>
+    <div class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Reports</div>
+    <div class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Insights</div>
+    <div class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>Logs</div>
+    <div class="sb-section">System</div>
+    <div class="sb-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>Register<span class="sb-pill" id="sbPill">5</span></div>
+    <div class="sb-item" onclick="navigateTo('blackhole-login.html')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg>Login</div>
+  </div>
+  <div class="sb-footer">
+    <div class="sb-user">
+      <div class="sb-avatar">JD</div>
+      <div><div class="sb-uname">James Doe</div><div class="sb-urole">Administrator</div></div>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left:auto;color:var(--t2);flex-shrink:0"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06-.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <header class="topbar">
+    <div class="topbar-title">Register <span>User Management</span></div>
+    <div class="tb-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input type="text" placeholder="Search anything…"/></div>
+    <div class="tb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg><div class="tb-notif"></div></div>
+    <div class="tb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 10-16 0"/></svg></div>
+    <button class="theme-btn" id="themeBtn">
+      <svg class="i-moon" width="15" height="15" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="0.9"><path d="M11.8 8.6A5.2 5.2 0 014.4 1.2a5.2 5.2 0 100 10.4 5.2 5.2 0 007.4-3z"/></svg>
+      <svg class="i-sun" width="15" height="15" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="0.9"><circle cx="6.5" cy="6.5" r="2.4"/><line x1="6.5" y1="1" x2="6.5" y2="2.3"/><line x1="6.5" y1="10.7" x2="6.5" y2="12"/><line x1="1" y1="6.5" x2="2.3" y2="6.5"/><line x1="10.7" y1="6.5" x2="12" y2="6.5"/><line x1="2.7" y1="2.7" x2="3.6" y2="3.6"/><line x1="9.4" y1="9.4" x2="10.3" y2="10.3"/><line x1="10.3" y1="2.7" x2="9.4" y2="3.6"/><line x1="3.6" y1="9.4" x2="2.7" y2="10.3"/></svg>
+    </button>
+  </header>
+
+  <div class="content">
+
+    <!-- STAT CARDS -->
+    <div class="stat-row">
+      <div class="sc">
+        <div class="sc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg></div>
+        <div class="sc-label">Total Users</div>
+        <div class="sc-val" id="statTotal">5</div>
+        <div class="sc-delta up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18,15 12,9 6,15"/></svg>All registered users</div>
+      </div>
+      <div class="sc moss">
+        <div class="sc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22,4 12,14.01 9,11.01"/></svg></div>
+        <div class="sc-label">Active</div>
+        <div class="sc-val" id="statActive">3</div>
+        <div class="sc-delta up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18,15 12,9 6,15"/></svg>Verified accounts</div>
+      </div>
+      <div class="sc">
+        <div class="sc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg></div>
+        <div class="sc-label">Pending</div>
+        <div class="sc-val" id="statPending">2</div>
+        <div class="sc-delta dn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6,9 12,15 18,9"/></svg>Awaiting approval</div>
+      </div>
+    </div>
+
+    <!-- TABLE -->
+    <div class="glass table-card">
+      <div class="ch">
+        <div>
+          <div class="ch-title">Registered Users</div>
+          <div class="ch-sub">All user accounts in the system</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <div class="reg-search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            <input type="text" id="searchInput" placeholder="Search user…" oninput="filterUsers()"/>
+          </div>
+          <button class="btn-add" onclick="openModal()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add User
+          </button>
+        </div>
+      </div>
+      <table class="tbl">
+        <thead>
+          <tr><th>User</th><th>Email</th><th>Role</th><th>Phone</th><th>Registered</th><th>Status</th></tr>
+        </thead>
+        <tbody id="userTableBody"></tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+</div><!-- /shell -->
+
+<!-- ADD USER MODAL -->
+<div class="overlay" id="addModal" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <div class="modal-hd">
+      <div class="modal-title">Add New User</div>
+      <button class="modal-close" onclick="closeModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+
+    <!-- Photo -->
+    <div class="photo-row">
+      <div class="photo-circle" id="mPhotoCircle" onclick="document.getElementById('fileModal').click()">
+        <span id="mPhotoIni" style="pointer-events:none">?</span>
+      </div>
+      <div class="photo-info">
+        <div class="photo-info-title">Profile Photo</div>
+        <div class="photo-info-hint">JPG, PNG or WEBP · Click photo or button to upload</div>
+        <div class="photo-btns">
+          <label class="btn-pick" for="fileModal">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Upload
+          </label>
+          <button class="btn-rm" id="mRemoveBtn" onclick="clearModalPhoto()" style="display:none">Remove</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="field-row">
+      <div class="field"><label>First Name</label><input type="text" id="fFirstName" placeholder="John" oninput="syncModalInitials()"/></div>
+      <div class="field"><label>Last Name</label> <input type="text" id="fLastName"  placeholder="Doe"  oninput="syncModalInitials()"/></div>
+    </div>
+    <div class="field"><label>Email</label><input type="email" id="fEmail" placeholder="john@example.com"/></div>
+    <div class="field-row">
+      <div class="field"><label>Phone</label><input type="text" id="fPhone" placeholder="+66 81 234 5678"/></div>
+      <div class="field"><label>Role</label>
+        <select id="fRole"><option>User</option><option>Editor</option><option>Administrator</option></select>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Department</label><input type="text" id="fDept" placeholder="e.g. Marketing"/></div>
+      <div class="field"><label>Status</label>
+        <select id="fStatus"><option>Active</option><option>Pending</option><option>Inactive</option></select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-submit" onclick="submitUser()">Add User</button>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL PANEL -->
+<div class="detail-overlay" id="detailOverlay" onclick="closeDetailOutside(event)">
+  <div class="detail-panel" id="detailPanel"></div>
+</div>
+
+  <!-- Glass UI — shared utilities -->
+  <script src="../assets/js/glassui.js"></script>
+
+  <!-- Page-specific logic -->
+  <script src="../assets/js/register.js"></script>
+
+</body>
+</html>
