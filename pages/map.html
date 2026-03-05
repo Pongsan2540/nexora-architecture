@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Map — Glass UI</title>
+  <title>Nexora Map</title>
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -17,6 +17,10 @@
 
   <!-- Page-specific styles -->
   <link rel="stylesheet" href="../assets/css/map.css">
+  <style>
+    /* Additional modal styles */
+    .add-place-backdrop, .add-place-modal { }
+  </style>
 </head>
 <body>
 
@@ -53,9 +57,9 @@
   </button>
 
   <nav class="topNav">
-    <div class="brand">Glass UI <small>map</small></div>
+    <div class="brand">Nexora <small>map</small></div>
     <div class="navLinks">
-      <button class="linkBtn" onclick="navigateTo('landing.html')">← Landing</button>
+      <button class="linkBtn" onclick="navigateTo('landing.html')">Home</button>
       <button class="linkBtn" onclick="navigateTo('blackhole-login.html')">Login</button>
     </div>
   </nav>
@@ -65,13 +69,20 @@
     <div class="glass search-wrap">
       <div class="search-inner">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-        <input type="text" placeholder="Search places…" id="searchInput"/>
+        <input type="text" placeholder="Search Location ..." id="searchInput"/>
       </div>
     </div>
     <div class="glass loc-list">
-      <div class="loc-head">Saved Places</div>
+      <div class="loc-head">Saved Location</div>
       <div class="loc-items" id="locItems"></div>
     </div>
+    <button class="glass add-place-btn" id="btnAddPlace">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+      </svg>
+      Add Location
+    </button>
     <div class="glass info-card" id="infoCard">
       <div class="info-card-head">
         <div><div class="info-title" id="infoTitle">—</div><div class="info-sub" id="infoSub">—</div></div>
@@ -111,17 +122,9 @@
       <div class="lbtn-thumb thumb-streets"></div>
       <span class="lbtn-label">Streets</span>
     </button>
-    <button class="lbtn" data-key="topo">
-      <div class="lbtn-thumb thumb-topo"></div>
-      <span class="lbtn-label">Topo</span>
-    </button>
     <button class="lbtn" data-key="positron">
       <div class="lbtn-thumb thumb-positron"></div>
       <span class="lbtn-label">Minimal</span>
-    </button>
-    <button class="lbtn" data-key="liberty">
-      <div class="lbtn-thumb thumb-liberty"></div>
-      <span class="lbtn-label">Liberty</span>
     </button>
   </div>
 
@@ -170,6 +173,88 @@
       <div class="ev-modal-desc" id="evModalDesc">—</div>
       <div class="ev-modal-tags" id="evModalTags"></div>
     </div>
+  </div>
+
+  <!-- Add Place Modal -->
+  <div class="add-place-backdrop" id="addPlaceBackdrop"></div>
+  <div class="add-place-modal" id="addPlaceModal">
+    <div class="add-place-header">
+      <h2>Add New Location</h2>
+      <button class="add-place-close" id="closeAddPlace">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <form id="formAddPlace" class="add-place-form">
+      <div class="form-group">
+        <label for="addPlaceName">Location Name *</label>
+        <input type="text" id="addPlaceName" placeholder="e.g. Temple of Dawn" required>
+      </div>
+
+      <div class="form-group">
+        <label for="addPlaceSub">Subtitle</label>
+        <input type="text" id="addPlaceSub" placeholder="e.g. Bangkok, Thailand">
+      </div>
+
+      <div class="form-group">
+        <label>Pick Coordinates from Map</label>
+        <div style="display:flex;gap:8px;margin-bottom:8px;">
+          <button type="button" id="btnPickCoord" class="pick-coord-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;">
+              <circle cx="12" cy="12" r="10"></circle>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            Pick from Map
+          </button>
+        </div>
+        <div id="coordStatus" class="coord-status">Click button to pick from map</div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="addPlaceLat">Latitude *</label>
+          <input type="number" id="addPlaceLat" step="0.0001" placeholder="13.7516" required>
+        </div>
+        <div class="form-group">
+          <label for="addPlaceLng">Longitude *</label>
+          <input type="number" id="addPlaceLng" step="0.0001" placeholder="100.4918" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="addPlaceTag">Category</label>
+        <select id="addPlaceTag">
+          <option value="Heritage">Heritage</option>
+          <option value="Shopping">Shopping</option>
+          <option value="Dining">Dining</option>
+          <option value="Parks">Parks</option>
+          <option value="Museums">Museums</option>
+          <option value="Temples">Temples</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="addPlaceImg">Image URL</label>
+        <input type="url" id="addPlaceImg" placeholder="https://example.com/image.jpg">
+      </div>
+
+      <div class="form-group">
+        <label for="addPlaceDesc">Description</label>
+        <textarea id="addPlaceDesc" placeholder="Describe this place..." rows="3"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="addPlaceHours">Hours</label>
+        <input type="text" id="addPlaceHours" placeholder="e.g. 08:30 – 18:00">
+      </div>
+
+      <div class="form-group">
+        <label for="addPlaceAdmission">Admission</label>
+        <input type="text" id="addPlaceAdmission" placeholder="e.g. Free or 500 THB">
+      </div>
+
+      <button type="submit" class="submit-btn">Add Location</button>
+    </form>
   </div>
 
   <!-- Glass UI — shared utilities -->
