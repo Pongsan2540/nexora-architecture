@@ -36,7 +36,9 @@ html, body {
   overflow: hidden;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   font-weight: 500;
-  -webkit-font-smoothing: antialiased;
+  -webkit-font-smoothing: subpixel-antialiased;
+  -moz-osx-font-smoothing: auto;
+  text-rendering: optimizeLegibility;
   transition: background 700ms;
 }
 
@@ -70,10 +72,13 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
 .enter-btn.hidden { opacity: 0; pointer-events: none; }
 
 .enter-word {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  font-size: 16px; font-weight: 600; font-style: normal;
-  letter-spacing: 0.22em; color: var(--t2);
-  transition: color 400ms;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-size: 20px;
+    font-weight: 900; /* ตัวหนา */
+    font-style: normal;
+    letter-spacing: 0.22em;
+    color: var(--t2);
+    transition: color 400ms;
 }
 .enter-line {
   width: 24px; height: 1px; background: var(--t2);
@@ -272,3 +277,18 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
   color: var(--t2); cursor: pointer; transition: color 260ms;
 }
 .exit-row button:hover { color: var(--t1); }
+/* ── crisp rendering: dark text on light card bg ── */
+.card,
+.card input,
+.card label,
+.card .form-eyebrow,
+.card .btn-back,
+.card .btn-go,
+.card .card-title,
+.card .card-desc,
+.card .card-index,
+.card .card-cta {
+  -webkit-font-smoothing: subpixel-antialiased;
+  -moz-osx-font-smoothing: auto;
+  transform: translateZ(0);
+}
