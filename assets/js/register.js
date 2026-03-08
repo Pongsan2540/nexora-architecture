@@ -1,6 +1,8 @@
 /* register.js — Page-specific logic */
 /* Shared utilities: ../js/glassui.js */
 
+const BASE_URL = "http://localhost:8001/nexora/api";
+
 (function(){
   const veil = document.getElementById('pageVeil');
   function navigateTo(url){ veil.classList.add('in'); setTimeout(()=>location.href=url,430); }
@@ -52,13 +54,23 @@
 
 /* ─── DATA ─── */
 const COLORS=['#8a7e6e','#6a7a68','#7a8a6e','#7e6e8a','#6e8a7a','#8a7a6e'];
-let users=[
-  {id:1,firstName:'Arisa',    lastName:'Tanaka',  email:'arisa@example.com',  phone:'+66 81 111 2222',role:'Administrator',dept:'Management',status:'Active', date:'2026-01-05',photo:null},
-  {id:2,firstName:'Prawit',   lastName:'Suwanna', email:'prawit@example.com', phone:'+66 89 222 3333',role:'Editor',       dept:'Content',   status:'Active', date:'2026-01-18',photo:null},
-  {id:3,firstName:'Sirilak',  lastName:'Panya',   email:'sirilak@example.com',phone:'+66 82 333 4444',role:'User',         dept:'Marketing', status:'Pending',date:'2026-02-03',photo:null},
-  {id:4,firstName:'Nattawut', lastName:'Korn',    email:'natt@example.com',   phone:'+66 83 444 5555',role:'Editor',       dept:'Analytics', status:'Active', date:'2026-02-14',photo:null},
-  {id:5,firstName:'Pimchanok',lastName:'Ruang',   email:'pim@example.com',    phone:'+66 84 555 6666',role:'User',         dept:'Support',   status:'Pending',date:'2026-02-28',photo:null},
-];
+
+let users = [];
+async function loadUsers(){
+  try {
+    const res = await fetch(`${BASE_URL}/users`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    users = await res.json();
+    renderTable(users);
+    updateStats();
+  } catch (err) {
+    console.error("Load users failed:", err);
+    const tb = document.getElementById('userTableBody');
+    tb.innerHTML = '<tr class="empty-row"><td colspan="6">Failed to load users</td></tr>';
+  }
+}
+
 let nextId=6, detailUserId=null, pendingPhoto=null;
 
 const ac=i=>COLORS[i%COLORS.length];
@@ -83,23 +95,48 @@ function updateStats(){
   document.getElementById('sbPill').textContent     = users.length;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
 function renderTable(list){
-  const tb=document.getElementById('userTableBody');
-  if(!list.length){tb.innerHTML='<tr class="empty-row"><td colspan="6">No users found</td></tr>';return;}
-  tb.innerHTML=list.map((u,i)=>`
+  const tb = document.getElementById('userTableBody');
+
+  if(!list || !list.length){
+    tb.innerHTML = '<tr class="empty-row"><td colspan="6">No users found</td></tr>';
+    return;
+  }
+
+  tb.innerHTML = list.map((u,i)=>`
     <tr onclick="openDetail(${u.id})">
-      <td><div class="td-main">${avHTML(u,i,'av')}<span>${u.firstName} ${u.lastName}</span></div></td>
-      <td>${u.email}</td><td>${u.role}</td><td>${u.phone}</td><td>${u.date}</td>
-      <td>${badge(u.status)}</td>
-    </tr>`).join('');
+      <td>
+        <div class="td-main">
+          ${avHTML(u,i,'av')}
+          <span>${u.firstName} ${u.lastName}</span>
+        </div>
+      </td>
+      <td>${u.email ?? ''}</td>
+      <td>${u.role ?? ''}</td>
+      <td>${u.phone ?? ''}</td>
+      <td>${u.date ?? ''}</td>
+      <td>${badge(u.status ?? '')}</td>
+    </tr>
+  `).join('');
 }
 
 function filterUsers(){
-  const q=document.getElementById('searchInput').value.toLowerCase();
-  renderTable(users.filter(u=>
-    (u.firstName+' '+u.lastName).toLowerCase().includes(q)||
-    u.email.toLowerCase().includes(q)||u.role.toLowerCase().includes(q)||u.dept.toLowerCase().includes(q)));
+  const q = document.getElementById('searchInput').value.toLowerCase().trim();
+
+  const filtered = users.filter(u =>
+    (`${u.firstName || ''} ${u.lastName || ''}`.toLowerCase().includes(q)) ||
+    (u.email || '').toLowerCase().includes(q) ||
+    (u.role || '').toLowerCase().includes(q) ||
+    (u.dept || '').toLowerCase().includes(q)
+  );
+
+  renderTable(filtered);
 }
+
+document.addEventListener("DOMContentLoaded", loadUsers);
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 /* ─── PHOTO HANDLERS ─── */
 function readFile(file,cb){
@@ -253,3 +290,5 @@ function deleteUser(id){
 }
 
 renderTable(users);updateStats();
+
+document.getElementById('searchInput').addEventListener('input', filterUsers);

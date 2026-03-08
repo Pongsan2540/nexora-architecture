@@ -1,5 +1,38 @@
 /* map.js — Page-specific logic */
 /* Shared utilities: ../js/glassui.js */
+// ── Auth Guard ──
+// if (!sessionStorage.getItem('nexora_auth')) {
+//   document.documentElement.style.visibility = 'hidden';
+//   setTimeout(() => window.location.href = '../pages/blackhole-login.html', 0);
+// }
+
+// // ── Prevent back button cache ──
+// window.addEventListener('pageshow', (e) => {
+//   if (e.persisted || !sessionStorage.getItem('nexora_auth')) {
+//     document.documentElement.style.visibility = 'hidden';
+//     window.location.href = '../pages/blackhole-login.html';
+//   }
+// });
+
+const BASE_URL = "http://localhost:8001/nexora/api";
+
+// ── Auto Logout on Idle (30 minutes) ──
+let idleTimer;
+const IDLE_LIMIT = 30 * 60 * 1000;
+
+function resetIdle() {
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(() => {
+    sessionStorage.removeItem('nexora_auth');
+    window.location.href = '../pages/blackhole-login.html';
+  }, IDLE_LIMIT);
+}
+
+['mousemove', 'keydown', 'click', 'scroll', 'touchstart'].forEach(evt => {
+  window.addEventListener(evt, resetIdle);
+});
+
+resetIdle();
 
 (function(){
     /* PAGE TRANSITION */
@@ -26,7 +59,8 @@
     };
 
     /* ── PLACES — with rich data ── */
-    let PLACES = [
+     /*
+    let PLACES = [4
       {
         name:'Wat Phra Kaew', sub:'Grand Palace, Bangkok',
         lat:13.7516, lng:100.4918, tag:'Heritage',
@@ -47,6 +81,43 @@
         events:[]
       }
     ];
+    */
+
+
+
+let PLACES = [];
+
+async function loadPlaces() {
+  try {
+    const res = await fetch(`${BASE_URL}/listPlaces`);
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}`);
+    }
+
+    const data = await res.json();
+
+    PLACES = Array.isArray(data) ? data : (data.places || []);
+
+    renderEventsList();
+    // renderPlaces();
+    // renderMarkers();
+  } catch (error) {
+    console.error("โหลดข้อมูล places ไม่สำเร็จ:", error);
+    PLACES = [];
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  loadPlaces();
+});
+
+
+
+
+
+
+
+
 
     /* ── SAVE PLACES TO LOCALSTORAGE ── */
     function savePlacesLocal() {
