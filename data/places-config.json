@@ -1,0 +1,74 @@
+{
+  "places": [
+    {
+      "name": "Wat Phra Kaew",
+      "sub": "Grand Palace, Bangkok",
+      "lat": 13.7516,
+      "lng": 100.4918,
+      "tag": "Heritage",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Wat_Phra_Kaew_3.jpg/1280px-Wat_Phra_Kaew_3.jpg",
+      "desc": "The Temple of the Emerald Buddha — Thailand's most sacred Buddhist temple, built in 1782 within the Grand Palace grounds. Home to the revered Phra Kaeo Morakot jade statue.",
+      "hours": "08:30 – 15:30",
+      "admission": "500 THB",
+      "events": [
+        {
+          "icon": "🏮",
+          "name": "Royal Ceremony",
+          "time": "Sat, 15 Mar · 09:00",
+          "badge": "Official",
+          "img": "https://picsum.photos/seed/ceremony/120/80",
+          "venue": "Wat Phra Kaew",
+          "adm": "Included (500 THB)",
+          "desc": "A sacred royal ceremony held at the Temple of the Emerald Buddha. Witness traditional Thai rituals performed by Buddhist monks in full ceremonial attire.",
+          "tags": ["Royal", "Buddhist", "Cultural"]
+        },
+        {
+          "icon": "🎨",
+          "name": "Temple Art Tour",
+          "time": "Daily · 10:00 & 14:00",
+          "badge": "Free",
+          "img": "https://picsum.photos/seed/arttour/120/80",
+          "venue": "Grand Palace Grounds",
+          "adm": "Free with entry",
+          "desc": "Guided tour exploring the intricate murals, gilded spires, and symbolic artwork decorating every surface of Wat Phra Kaew. Led by expert art historians.",
+          "tags": ["Art", "History", "Guided"]
+        },
+        {
+          "icon": "📸",
+          "name": "Photography Walk",
+          "time": "Sun, 16 Mar · 07:00",
+          "badge": "Guide",
+          "img": "https://picsum.photos/seed/photowalk/120/80",
+          "venue": "Grand Palace",
+          "adm": "200 THB",
+          "desc": "Early morning golden-hour photography session around the palace grounds. Small group of 8 max. Professional guide with photography tips included.",
+          "tags": ["Photography", "Morning", "Small Group"]
+        }
+      ]
+    },
+    {
+      "name": "Chatuchak Market",
+      "sub": "Bangkok",
+      "lat": 13.7999,
+      "lng": 100.5500,
+      "tag": "Shopping",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Chatuchak_market.jpg/1280px-Chatuchak_market.jpg",
+      "desc": "The world's largest weekend market with over 15,000 stalls spanning 35 acres. A labyrinth of vintage finds, local crafts, street food, and live plants.",
+      "hours": "09:00 – 18:00 (Sat–Sun)",
+      "admission": "Free",
+      "events": [
+        {
+          "icon": "🛍️",
+          "name": "Vintage Fashion Hunt",
+          "time": "Sat, 15 Mar · 10:00",
+          "badge": "Shopping",
+          "img": "https://picsum.photos/seed/vintage/120/80",
+          "venue": "Chatuchak Section 22",
+          "adm": "Free",
+          "desc": "Curated tour through the best vintage clothing stalls. Find retro gems, designer secondhand pieces, and unique Thai fashion. Tips on haggling included.",
+          "tags": ["Fashion", "Vintage", "Shopping"]
+        }
+      ]
+    }
+  ]
+}

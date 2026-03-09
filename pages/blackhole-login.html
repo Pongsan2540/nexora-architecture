@@ -3,18 +3,18 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Login — Glass UI</title>
+  <title>Nexora Login</title>
 
-  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Lora:ital,wght@0,400;0,600;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 
-  <!-- Glass UI — shared styles (load in this order) -->
+    <!-- Glass UI — shared styles (load in this order) -->
   <link rel="stylesheet" href="../assets/css/tokens.css">
   <link rel="stylesheet" href="../assets/css/components.css">
 
   <!-- Page-specific styles -->
   <link rel="stylesheet" href="../assets/css/blackhole-login.css">
+
 </head>
 <body>
 
@@ -26,21 +26,21 @@
   </svg>
   <svg class="i-sun" width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="0.9">
     <circle cx="6.5" cy="6.5" r="2.4"/>
-    <line x1="6.5" y1="1"    x2="6.5" y2="2.3"/>
+    <line x1="6.5" y1="1" x2="6.5" y2="2.3"/>
     <line x1="6.5" y1="10.7" x2="6.5" y2="12"/>
-    <line x1="1"   y1="6.5"  x2="2.3" y2="6.5"/>
-    <line x1="10.7" y1="6.5" x2="12"  y2="6.5"/>
-    <line x1="2.7" y1="2.7"  x2="3.6" y2="3.6"/>
-    <line x1="9.4" y1="9.4"  x2="10.3" y2="10.3"/>
+    <line x1="1" y1="6.5" x2="2.3" y2="6.5"/>
+    <line x1="10.7" y1="6.5" x2="12" y2="6.5"/>
+    <line x1="2.7" y1="2.7" x2="3.6" y2="3.6"/>
+    <line x1="9.4" y1="9.4" x2="10.3" y2="10.3"/>
     <line x1="10.3" y1="2.7" x2="9.4" y2="3.6"/>
-    <line x1="3.6"  y1="9.4" x2="2.7" y2="10.3"/>
+    <line x1="3.6" y1="9.4" x2="2.7" y2="10.3"/>
   </svg>
 </button>
 
 <div id="blackhole">
   <div class="enter-btn" id="enterBtn">
     <div class="enter-line"></div>
-    <span class="enter-word">enter</span>
+    <span class="enter-word">Click</span>
     <div class="enter-line"></div>
   </div>
 </div>
@@ -51,10 +51,12 @@
   <canvas id="waveCanvas"></canvas>
 
   <div class="scene">
-    <div class="hint" id="hint">cycle &nbsp;·&nbsp; select</div>
-
+    <div class="hint" id="hint">Identity &nbsp;·&nbsp; Sense</div>
     <div class="deck" id="deck">
 
+      <!-- ══════════════════════════════
+           CARD I — SIGN IN
+      ══════════════════════════════ -->
       <div class="card" data-id="0">
         <div class="card-intro">
           <div class="card-index">I</div>
@@ -62,51 +64,1065 @@
           <div class="card-desc">sign in to your account</div>
           <div class="card-cta">select</div>
         </div>
+
         <div class="card-form">
-          <div class="form-eyebrow">sign in</div>
-          <div class="field"><label>email</label><input type="email" placeholder="name@domain.com" autocomplete="off"></div>
-          <div class="field"><label>password</label><input type="password" placeholder="••••••••"></div>
-          <div class="form-row">
-            <button class="btn-back">← back</button>
-            <button class="btn-go">continue</button>
+          <!-- ── Phase 1: Credentials ── -->
+          <div id="login-creds" class="bio-section active">
+            <div class="form-eyebrow">sign in</div>
+
+            <div class="field">
+              <label>email</label>
+              <input type="email" id="login-email" placeholder="name@domain.com" autocomplete="off">
+            </div>
+            <div class="field">
+              <label>password</label>
+              <input type="password" id="login-pw" placeholder="••••••••">
+            </div>
+
+            <!-- Risk panel -->
+            <div class="risk-mini">
+              <div class="risk-mini-title">risk analysis</div>
+              <div class="risk-bar-wrap"><div class="risk-bar-fill" id="risk-fill1"></div></div>
+              <div class="risk-rows">
+                <div class="risk-row">
+                  <span class="risk-row-name">device</span>
+                  <span class="risk-badge low" id="rf-device">checking</span>
+                </div>
+                <div class="risk-row">
+                  <span class="risk-row-name">pattern</span>
+                  <span class="risk-badge low" id="rf-typing">waiting</span>
+                </div>
+                <div class="risk-row">
+                  <span class="risk-row-name">timing</span>
+                  <span class="risk-badge low" id="rf-time">checking</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-error" id="err-login"></div>
+            <div class="form-row">
+              <button class="btn-back" id="back-login">← back</button>
+              <button class="btn-go disabled" id="btn-login" onclick="doLogin()">continue</button>
+            </div>
+          </div>
+
+          <!-- ── Phase 2: Biometric ── -->
+          <div id="login-biometric" class="bio-section">
+            <div class="form-eyebrow">biometric verify</div>
+
+            <div class="passphrase-box">
+              <div class="passphrase-text" id="passphrase-display"></div>
+              <div class="char-dots" id="char-dots"></div>
+              <input class="bio-input-field" type="text" id="typing-input"
+                placeholder="type here..." autocomplete="off" autocorrect="off" spellcheck="false">
+            </div>
+
+            <div class="bio-viz" id="bio-viz"></div>
+
+            <!-- Biometric score panel -->
+            <div class="risk-mini">
+              <div class="risk-mini-title">keystroke dynamics</div>
+              <div class="risk-bar-wrap"><div class="risk-bar-fill" id="bio-fill"></div></div>
+              <div class="risk-rows">
+                <div class="risk-row">
+                  <span class="risk-row-name">interval</span>
+                  <span class="risk-badge" id="bio-interval">—</span>
+                </div>
+                <div class="risk-row">
+                  <span class="risk-row-name">rhythm</span>
+                  <span class="risk-badge" id="bio-rhythm">—</span>
+                </div>
+                <div class="risk-row">
+                  <span class="risk-row-name">speed</span>
+                  <span class="risk-badge" id="bio-speed">—</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-error" id="err-bio"></div>
+            <div class="form-row">
+              <button class="btn-back" style="pointer-events:all;" onclick="goToLoginPhase(1)">← back</button>
+              <button class="btn-go disabled" id="btn-bio" onclick="doVerifyBiometric()">verify</button>
+            </div>
           </div>
         </div>
+
         <div class="back-lbl">next</div>
       </div>
 
+      <!-- ══════════════════════════════
+           CARD II — REGISTER
+      ══════════════════════════════ -->
       <div class="card" data-id="1">
         <div class="card-intro">
           <div class="card-index">II</div>
-          <div class="card-title">new<br>here</div>
+          <div class="card-title">new users</div>
           <div class="card-desc">create your account</div>
           <div class="card-cta">select</div>
         </div>
+
         <div class="card-form">
-          <div class="form-eyebrow">create account</div>
-          <div class="field"><label>name</label><input type="text" placeholder="your name" autocomplete="off"></div>
-          <div class="field"><label>email</label><input type="email" placeholder="name@domain.com" autocomplete="off"></div>
-          <div class="field"><label>password</label><input type="password" placeholder="••••••••"></div>
-          <div class="form-row">
-            <button class="btn-back">← back</button>
-            <button class="btn-go">create</button>
+
+          <!-- Step 1: Info -->
+          <div id="reg-step1" class="bio-section active">
+            <div class="form-eyebrow">create account</div>
+            <div class="field">
+              <label>name</label>
+              <input type="text" id="reg-name" placeholder="your name" autocomplete="off">
+            </div>
+            <div class="field">
+              <label>email</label>
+              <input type="email" id="reg-email" placeholder="name@domain.com" autocomplete="off">
+            </div>
+            <div class="field">
+              <label>password</label>
+              <input type="password" id="reg-pw" placeholder="•••••••• (min 8)">
+            </div>
+            <div class="form-error" id="err-reg"></div>
+            <div class="form-row">
+              <button class="btn-back" id="back-reg">← back</button>
+              <button class="btn-go" id="btn-reg-next" onclick="goRegStep2()">next →</button>
+            </div>
           </div>
+
+          <!-- Step 2: Biometric Enrollment (3 rounds) -->
+          <div id="reg-step2" class="bio-section">
+            <div class="form-eyebrow">biometric enrollment</div>
+
+            <div class="enroll-header">
+              <span class="enroll-round-label">round <span id="reg-round">1</span>/3</span>
+              <span class="enroll-status" id="reg-round-status">type to begin</span>
+            </div>
+
+            <div class="passphrase-box">
+              <div class="passphrase-text" id="reg-passphrase-display"></div>
+              <div class="char-dots" id="reg-char-dots"></div>
+              <input class="bio-input-field" type="text" id="reg-typing-input"
+                placeholder="type here..." autocomplete="off" autocorrect="off" spellcheck="false">
+            </div>
+
+            <div class="bio-viz" id="reg-bio-viz"></div>
+
+            <!-- Round progress indicators -->
+            <div class="enroll-rounds">
+              <div class="enroll-rnd" id="rnd1"></div>
+              <div class="enroll-rnd" id="rnd2"></div>
+              <div class="enroll-rnd" id="rnd3"></div>
+            </div>
+
+            <div class="form-error" id="err-reg2"></div>
+            <div class="form-row">
+              <button class="btn-back" style="pointer-events:all;" onclick="goRegStep1()">← back</button>
+              <button class="btn-go disabled" id="btn-reg-submit" onclick="doRegister()">create</button>
+            </div>
+          </div>
+
         </div>
+
         <div class="back-lbl">next</div>
       </div>
 
-    </div>
-  </div>
+    </div><!-- /deck -->
+  </div><!-- /scene -->
 
   <div class="exit-row">
     <button id="exitBtn">leave</button>
   </div>
-</div>
+</div><!-- /overlay -->
 
-  <!-- Glass UI — shared utilities -->
-  <script src="../assets/js/glassui.js"></script>
+<script>
+/* ════════════════════════════════════════════════════
+   CONFIG
+════════════════════════════════════════════════════ */
+const API        = "http://localhost:8001/api";
+const PASSPHRASE = "the quick brown fox jumps over the lazy dog";
 
-  <!-- Page-specific logic -->
-  <script src="../assets/js/blackhole-login.js"></script>
+/* ════════════════════════════════════════════════════
+   AUTH STATE
+════════════════════════════════════════════════════ */
+let currentEmail    = "";
+let keystrokeTimes  = [], lastKeyTime = null, typingStartTime = null;
+let biometricScore  = 0, riskScore = 70;
+let wpm = 0, consistency = 0;
 
+/* ════════════════════════════════════════════════════
+   RISK INIT (runs once card opens)
+════════════════════════════════════════════════════ */
+function initRisk() {
+  setTimeout(() => { setRF('rf-device', 'low', 'known'); computeRisk(); }, 700);
+  setTimeout(() => {
+    const h = new Date().getHours();
+    setRF('rf-time', (h < 6 || h > 22) ? 'med' : 'low', (h < 6 || h > 22) ? 'odd hour' : 'normal');
+    computeRisk();
+  }, 1000);
+}
+
+function setRF(id, level, text) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.className = `risk-badge ${level}`;
+  el.textContent = text;
+}
+
+function computeRisk() {
+  const ids = ['rf-device', 'rf-typing', 'rf-time'];
+  let score = 0;
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (el.classList.contains('low'))  score += 33;
+    else if (el.classList.contains('med')) score += 15;
+  });
+  riskScore = score;
+  const fill = document.getElementById('risk-fill1');
+  if (fill) {
+    fill.style.width = score + '%';
+    fill.style.background = score >= 80 ? '#70a060' : score >= 50 ? '#b08840' : '#b06040';
+  }
+}
+
+/* ════════════════════════════════════════════════════
+   LOGIN PHASE NAVIGATION
+════════════════════════════════════════════════════ */
+function goToLoginPhase(n) {
+  document.getElementById('login-creds').classList.toggle('active', n === 1);
+  document.getElementById('login-biometric').classList.toggle('active', n === 2);
+}
+
+/* ════════════════════════════════════════════════════
+   INPUT VALIDATION
+════════════════════════════════════════════════════ */
+document.getElementById('login-email').addEventListener('input', checkLoginBtn);
+document.getElementById('login-pw').addEventListener('input', function() {
+  if (this.value.length >= 3) { setRF('rf-typing', 'low', 'analyzed'); computeRisk(); }
+  checkLoginBtn();
+});
+
+function checkLoginBtn() {
+  const e = document.getElementById('login-email').value;
+  const p = document.getElementById('login-pw').value;
+  const btn = document.getElementById('btn-login');
+  btn.classList.toggle('disabled', !(e.includes('@') && p.length >= 3));
+}
+
+/* ════════════════════════════════════════════════════
+   PHASE 1 — Login (credentials)
+════════════════════════════════════════════════════ */
+async function doLogin() {
+  const btn = document.getElementById('btn-login');
+  if (btn.classList.contains('disabled') || btn.classList.contains('loading')) return;
+
+  const email    = document.getElementById('login-email').value;
+  const password = document.getElementById('login-pw').value;
+  showErr('err-login', '');
+
+  btn.classList.add('loading');
+  btn.textContent = 'authenticating...';
+
+  try {
+    const res = await fetch(`${API}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Authentication failed');
+
+    currentEmail = email;
+    goToLoginPhase(2);
+    initBiometric();
+  } catch(e) {
+    showErr('err-login', e.message);
+  } finally {
+    btn.classList.remove('loading');
+    btn.textContent = 'continue';
+  }
+}
+
+/* ════════════════════════════════════════════════════
+   PHASE 2 — Biometric Init
+════════════════════════════════════════════════════ */
+function initBiometric() {
+  document.getElementById('passphrase-display').textContent = PASSPHRASE;
+
+  const dotsEl = document.getElementById('char-dots');
+  dotsEl.innerHTML = '';
+  for (let i = 0; i < PASSPHRASE.length; i++) {
+    const d = document.createElement('div');
+    d.className = 'char-dot'; d.id = `dot-${i}`;
+    dotsEl.appendChild(d);
+  }
+
+  const viz = document.getElementById('bio-viz');
+  viz.innerHTML = '';
+  for (let i = 0; i < 36; i++) {
+    const b = document.createElement('div');
+    b.className = 'bio-bar card0-bar';
+    b.style.height = (Math.random() * 16 + 3) + 'px';
+    viz.appendChild(b);
+  }
+
+  keystrokeTimes = []; lastKeyTime = null; typingStartTime = null;
+  biometricScore = 0;
+  document.getElementById('typing-input').value = '';
+  document.getElementById('btn-bio').classList.add('disabled');
+  setTimeout(() => document.getElementById('typing-input').focus(), 100);
+}
+
+document.getElementById('typing-input').addEventListener('keydown', function() {
+  const now = performance.now();
+  if (!typingStartTime) typingStartTime = now;
+  const interval = lastKeyTime ? now - lastKeyTime : 0;
+  if (interval > 0) keystrokeTimes.push(interval);
+  lastKeyTime = now;
+
+  const bars = document.querySelectorAll('.bio-bar');
+  if (bars.length) {
+    const idx = Math.floor(Math.random() * bars.length);
+    bars[idx].style.height = Math.min(28, Math.max(4, interval / 8)) + 'px';
+    bars[idx].classList.add('active');
+    setTimeout(() => bars[idx].classList.remove('active'), 200);
+  }
+  updateBioStats();
+});
+
+document.getElementById('typing-input').addEventListener('input', function() {
+  const typed = this.value;
+  let correct = true;
+  for (let i = 0; i < PASSPHRASE.length; i++) {
+    const dot = document.getElementById(`dot-${i}`);
+    if (!dot) continue;
+    if (i < typed.length) {
+      dot.className = 'char-dot ' + (typed[i] === PASSPHRASE[i] ? 'typed' : 'wrong');
+      if (typed[i] !== PASSPHRASE[i]) correct = false;
+    } else { dot.className = 'char-dot'; }
+  }
+  const done = typed.length >= PASSPHRASE.length && correct;
+  document.getElementById('btn-bio').classList.toggle('disabled', !(done && biometricScore >= 40));
+});
+
+function updateBioStats() {
+  if (keystrokeTimes.length < 3) return;
+  const avg = keystrokeTimes.reduce((a, b) => a + b, 0) / keystrokeTimes.length;
+  const std = Math.sqrt(keystrokeTimes.reduce((a, b) => a + Math.pow(b - avg, 2), 0) / keystrokeTimes.length);
+  consistency = Math.max(0, 100 - (std / avg * 100));
+  const elapsed = (performance.now() - typingStartTime) / 60000;
+  wpm = Math.round((keystrokeTimes.length / 5) / Math.max(elapsed, 0.001));
+
+  const cScore = Math.min(40, consistency / 2.5);
+  let sScore = 0;
+  if (wpm >= 30 && wpm <= 80)      sScore = 40;
+  else if (wpm >= 15 && wpm < 30)  sScore = 25;
+  else if (wpm > 80 && wpm <= 120) sScore = 30;
+  else if (wpm > 120)              sScore = 15;
+  else                              sScore = 5;
+  const dScore = Math.min(20, keystrokeTimes.length);
+  biometricScore = Math.round(cScore + sScore + dScore);
+
+  const setB = (id, text, level) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = text; el.className = `risk-badge ${level}`;
+  };
+  setB('bio-interval', Math.round(avg) + 'ms', avg < 500 ? 'low' : avg < 1000 ? 'med' : 'high');
+  setB('bio-rhythm', Math.round(consistency) + '%', consistency > 60 ? 'low' : consistency > 30 ? 'med' : 'high');
+  setB('bio-speed', wpm + ' wpm', (wpm >= 15 && wpm <= 120) ? 'low' : wpm > 0 ? 'med' : 'high');
+
+  const fill = document.getElementById('bio-fill');
+  if (fill) {
+    fill.style.width = biometricScore + '%';
+    fill.style.background = biometricScore > 60 ? '#70a060' : biometricScore > 40 ? '#b08840' : '#b06040';
+  }
+}
+
+/* ════════════════════════════════════════════════════
+   PHASE 2 — Verify Biometric → JWT
+════════════════════════════════════════════════════ */
+async function doVerifyBiometric() {
+  const btn = document.getElementById('btn-bio');
+  if (btn.classList.contains('disabled') || btn.classList.contains('loading')) return;
+  showErr('err-bio', '');
+
+  btn.classList.add('loading');
+  btn.textContent = 'verifying...';
+
+  try {
+    const res = await fetch(`${API}/verify-biometric`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: currentEmail,
+        biometric: {
+          keystroke_intervals: keystrokeTimes,
+          wpm, consistency, risk_score: riskScore, biometric_score: biometricScore,
+        }
+      })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Biometric verification failed');
+
+    localStorage.setItem('access_token', data.access_token);
+    localStorage.setItem('auth_result', JSON.stringify(data.auth_result));
+    sessionStorage.setItem('nexora_auth', '1');
+    navigateTo('landing.html');
+  } catch(e) {
+    showErr('err-bio', e.message);
+  } finally {
+    btn.classList.remove('loading');
+    btn.textContent = 'verify';
+  }
+}
+
+/* ════════════════════════════════════════════════════
+   REGISTER — 2-step + 3-round biometric enrollment
+════════════════════════════════════════════════════ */
+let regRound = 0;
+let regSamples = [];           // [ [intervals...], [intervals...], [intervals...] ]
+let regCurrentIntervals = [];
+let regLastKey = null, regStartTime = null;
+
+function goRegStep1() {
+  document.getElementById('reg-step1').classList.add('active');
+  document.getElementById('reg-step2').classList.remove('active');
+  regRound = 0; regSamples = [];
+}
+
+function goRegStep2() {
+  const name  = document.getElementById('reg-name').value;
+  const email = document.getElementById('reg-email').value;
+  const pw    = document.getElementById('reg-pw').value;
+  if (!name || !email || pw.length < 8) {
+    showErr('err-reg', 'fill all fields — password ≥ 8 chars'); return;
+  }
+  showErr('err-reg', '');
+  document.getElementById('reg-step1').classList.remove('active');
+  document.getElementById('reg-step2').classList.add('active');
+  regRound = 0; regSamples = [];
+  initRegBiometric();
+}
+
+function initRegBiometric() {
+  document.getElementById('reg-passphrase-display').textContent = PASSPHRASE;
+
+  const dotsEl = document.getElementById('reg-char-dots');
+  dotsEl.innerHTML = '';
+  for (let i = 0; i < PASSPHRASE.length; i++) {
+    const d = document.createElement('div');
+    d.className = 'char-dot'; d.id = `rdot-${i}`;
+    dotsEl.appendChild(d);
+  }
+
+  const viz = document.getElementById('reg-bio-viz');
+  viz.innerHTML = '';
+  for (let i = 0; i < 36; i++) {
+    const b = document.createElement('div');
+    b.className = 'bio-bar card1-bar';
+    b.style.height = (Math.random() * 16 + 3) + 'px';
+    viz.appendChild(b);
+  }
+
+  regCurrentIntervals = []; regLastKey = null; regStartTime = null;
+  const inp = document.getElementById('reg-typing-input');
+  inp.value = ''; inp.disabled = false;
+  document.getElementById('reg-round').textContent = regRound + 1;
+  document.getElementById('reg-round-status').textContent = 'type to begin';
+  document.getElementById('btn-reg-submit').classList.add('disabled');
+  ['rnd1','rnd2','rnd3'].forEach((id, i) => {
+    const el = document.getElementById(id);
+    el.classList.toggle('done', i < regRound);
+  });
+  setTimeout(() => inp.focus(), 100);
+}
+
+document.getElementById('reg-typing-input').addEventListener('keydown', function() {
+  const now = performance.now();
+  if (!regStartTime) regStartTime = now;
+  const interval = regLastKey ? now - regLastKey : 0;
+  if (interval > 0) regCurrentIntervals.push(interval);
+  regLastKey = now;
+
+  const bars = document.querySelectorAll('#reg-bio-viz .bio-bar');
+  if (bars.length) {
+    const idx = Math.floor(Math.random() * bars.length);
+    bars[idx].style.height = Math.min(28, Math.max(4, interval / 8)) + 'px';
+    bars[idx].classList.add('active');
+    setTimeout(() => bars[idx].classList.remove('active'), 200);
+  }
+});
+
+document.getElementById('reg-typing-input').addEventListener('input', function() {
+  const typed = this.value;
+  let correct = true;
+  for (let i = 0; i < PASSPHRASE.length; i++) {
+    const dot = document.getElementById(`rdot-${i}`);
+    if (!dot) continue;
+    if (i < typed.length) {
+      dot.className = 'char-dot ' + (typed[i] === PASSPHRASE[i] ? 'typed' : 'wrong');
+      if (typed[i] !== PASSPHRASE[i]) correct = false;
+    } else { dot.className = 'char-dot'; }
+  }
+  if (typed.length >= PASSPHRASE.length && correct && regCurrentIntervals.length >= 5) {
+    completeRegRound();
+  }
+});
+
+function completeRegRound() {
+  regSamples.push([...regCurrentIntervals]);
+  regRound++;
+
+  const rdEl = document.getElementById(`rnd${regRound}`);
+  if (rdEl) rdEl.classList.add('done');
+
+  if (regRound >= 3) {
+    document.getElementById('reg-round-status').textContent = '✓ enrollment complete';
+    document.getElementById('reg-typing-input').disabled = true;
+    document.getElementById('btn-reg-submit').classList.remove('disabled');
+  } else {
+    document.getElementById('reg-round').textContent = regRound + 1;
+    document.getElementById('reg-round-status').textContent = `round ${regRound} done — type again`;
+    regCurrentIntervals = []; regLastKey = null; regStartTime = null;
+    const inp = document.getElementById('reg-typing-input');
+    inp.value = '';
+    for (let i = 0; i < PASSPHRASE.length; i++) {
+      const dot = document.getElementById(`rdot-${i}`);
+      if (dot) dot.className = 'char-dot';
+    }
+    inp.focus();
+  }
+}
+
+async function doRegister() {
+  const btn = document.getElementById('btn-reg-submit');
+  if (btn.classList.contains('disabled') || btn.classList.contains('loading')) return;
+
+  const name  = document.getElementById('reg-name').value;
+  const email = document.getElementById('reg-email').value;
+  const pw    = document.getElementById('reg-pw').value;
+
+  btn.classList.add('loading'); btn.textContent = 'creating...';
+
+  try {
+    const res = await fetch(`${API}/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, password: pw, biometric_samples: regSamples })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Registration failed');
+
+    // Close register card → open sign-in card pre-filled
+    const regCard = document.querySelector('.card[data-id="1"]');
+    closeForm(regCard);
+    setTimeout(() => {
+      document.getElementById('login-email').value = email;
+      const signInCard = document.querySelector('.card[data-id="0"]');
+      if (order[0] !== 0) cycle();
+      setTimeout(() => openForm(signInCard), 400);
+    }, 350);
+  } catch(e) {
+    showErr('err-reg2', e.message);
+  } finally {
+    btn.classList.remove('loading'); btn.textContent = 'create';
+  }
+}
+
+/* ════════════════════════════════════════════════════
+   UTILS
+════════════════════════════════════════════════════ */
+function showErr(id, msg) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = msg;
+}
+
+/* ════════════════════════════════════════════════════
+   BLACKHOLE + CANVAS
+════════════════════════════════════════════════════ */
+(function () {
+  /* ── THEME ── */
+  const root = document.documentElement;
+  let dark = true;
+  const DARK_BG  = [15, 14, 12];
+  const LIGHT_BG = [247, 247, 245];
+  let bgT = 0, bgTgt = 0;
+
+  document.getElementById('themeBtn').addEventListener('click', () => {
+    dark = !dark;
+    root.setAttribute('data-theme', dark ? 'dark' : 'light');
+    bgTgt = dark ? 0 : 1;
+    setTimeout(() => render(false), 16);
+  });
+
+  /* ── CANVAS ── */
+  const container = document.getElementById('blackhole');
+  const W = container.offsetWidth, H = container.offsetHeight;
+  const CX = W / 2, CY = H / 2, MAX_ORB = 180;
+
+  const canvas = document.createElement('canvas');
+  const DPR = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = W * DPR; canvas.height = H * DPR;
+  canvas.style.cssText = `position:absolute;inset:0;width:${W}px;height:${H}px`;
+  container.insertBefore(canvas, container.firstChild);
+  const ctx = canvas.getContext('2d');
+  ctx.scale(DPR, DPR);
+
+  /* ── STATE ── */
+  const T0 = Date.now();
+  let bCol = false, bExp = false, bRet = false;
+  let aiPhase = 0, aiT = 0, aiAlpha = 0;
+
+  /* ── STARS ── */
+  const STARS = [];
+  class Star {
+    constructor() {
+      const r1 = Math.random() * (MAX_ORB / 2) + 1;
+      const r2 = Math.random() * (MAX_ORB / 2) + MAX_ORB;
+      this.orb = (r1 + r2) / 2;
+      this.x = CX; this.y = CY + this.orb; this.yo = this.y;
+      this.spd = (Math.random() * 2 + 1) * Math.PI / 180;
+      this.sr = Math.random() * Math.PI * 2; this.rot = 0;
+      this.cb = Math.max(0, this.orb - MAX_ORB * 0.7);
+      this.hp = CY + MAX_ORB / 2 + this.cb;
+      this.ep = CY + (STARS.length % 100) * -8 + Math.random() * 20;
+      this.al = parseFloat((1 - this.orb / 255).toFixed(2));
+      this.pr = this.sr; this.px = CX; this.py = this.y;
+    }
+    draw(t) {
+      if (!bExp && !bRet) {
+        this.rot = this.sr + t * this.spd;
+        this.y += bCol ? (this.hp - this.y) * 0.05 : (this.yo - this.y) * 0.08;
+      } else if (bExp) {
+        this.rot = this.sr + t * this.spd * 0.5;
+        this.y += (this.ep - this.y) * 0.012;
+      } else {
+        this.rot = this.sr + t * this.spd;
+        this.y += (this.yo - this.y) * 0.018;
+      }
+      const c = Math.cos(-this.pr), s = Math.sin(-this.pr);
+      const ox = this.px - CX, oy = this.py - CY;
+      ctx.save();
+      ctx.strokeStyle = dark ? `rgba(220,210,196,${this.al})` : `rgba(28,22,14,${this.al})`;
+      ctx.lineWidth = 0.5;
+      ctx.beginPath();
+      ctx.moveTo(c * ox - s * oy + CX, s * ox + c * oy + CY);
+      ctx.translate(CX, CY); ctx.rotate(this.rot); ctx.translate(-CX, -CY);
+      ctx.lineTo(this.x, this.y); ctx.stroke(); ctx.restore();
+      this.pr = this.rot; this.px = this.x; this.py = this.y;
+    }
+  }
+  for (let i = 0; i < 1600; i++) STARS.push(new Star());
+
+  /* ── NEURAL NODES ── */
+  const NODES = Array.from({ length: 28 }, () => ({
+    x: Math.random() * W, y: Math.random() * H,
+    r: Math.random() * 1.8 + 0.6,
+    phase: Math.random() * Math.PI * 2,
+    spd: Math.random() * 0.3 + 0.1,
+    vx: (Math.random() - 0.5) * 0.18,
+    vy: (Math.random() - 0.5) * 0.12,
+  }));
+
+  /* ── DATA STREAMS ── */
+  const STREAMS = Array.from({ length: 40 }, () => ({
+    x: Math.random() * W, y: Math.random() * H,
+    len: Math.random() * 80 + 40,
+    spd: Math.random() * 1.2 + 0.5,
+    angle: (Math.random() - 0.5) * 0.3 + Math.PI * 0.04,
+    al: Math.random() * 0.5 + 0.1,
+    delay: Math.random() * 3000,
+  }));
+
+  /* ── GRID ── */
+  const GRID_SIZE = 60;
+  const GCOLS = Math.ceil(W / GRID_SIZE) + 1;
+  const GROWS = Math.ceil(H / GRID_SIZE) + 1;
+  const CELLS = [];
+  for (let row = 0; row < GROWS; row++)
+    for (let col = 0; col < GCOLS; col++)
+      CELLS.push({ row, col, delay: Math.random() * 2000 });
+
+  function drawConnections(alpha) {
+    const MAX_DIST = 200;
+    ctx.save();
+    for (let i = 0; i < NODES.length; i++) {
+      for (let j = i + 1; j < NODES.length; j++) {
+        const dx = NODES[i].x - NODES[j].x, dy = NODES[i].y - NODES[j].y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < MAX_DIST) {
+          const strength = (1 - dist / MAX_DIST) * 0.35 * alpha;
+          ctx.strokeStyle = dark ? `rgba(200,200,190,${strength})` : `rgba(30,28,24,${strength})`;
+          ctx.lineWidth = 0.5;
+          ctx.beginPath(); ctx.moveTo(NODES[i].x, NODES[i].y); ctx.lineTo(NODES[j].x, NODES[j].y); ctx.stroke();
+        }
+      }
+    }
+    ctx.restore();
+  }
+
+  function drawNodes(t, alpha) {
+    NODES.forEach(n => {
+      n.x += n.vx; n.y += n.vy;
+      if (n.x < -20) n.x = W + 20; if (n.x > W + 20) n.x = -20;
+      if (n.y < -20) n.y = H + 20; if (n.y > H + 20) n.y = -20;
+      const pulse = Math.sin(t * 0.02 + n.phase) * 0.5 + 0.5;
+      const a = pulse * 0.7 * alpha;
+      ctx.save();
+      ctx.beginPath(); ctx.arc(n.x, n.y, n.r + pulse * 0.8, 0, Math.PI * 2);
+      ctx.fillStyle = dark ? `rgba(210,205,195,${a})` : `rgba(40,38,30,${a})`; ctx.fill();
+      ctx.beginPath(); ctx.arc(n.x, n.y, n.r + pulse * 4, 0, Math.PI * 2);
+      ctx.strokeStyle = dark ? `rgba(210,205,195,${a * 0.15})` : `rgba(40,38,30,${a * 0.15})`;
+      ctx.lineWidth = 0.5; ctx.stroke(); ctx.restore();
+    });
+  }
+
+  function drawStreams(t, alpha) {
+    ctx.save();
+    const now = Date.now() - T0;
+    STREAMS.forEach(s => {
+      if (now < s.delay) return;
+      const age = (now - s.delay) * 0.001;
+      const dist = (age * s.spd * 80) % (W + 200);
+      const sx = s.x + Math.cos(s.angle) * dist, sy = s.y + Math.sin(s.angle) * dist;
+      const ex = sx - Math.cos(s.angle) * s.len, ey = sy - Math.sin(s.angle) * s.len;
+      const a = s.al * alpha * 0.7;
+      const col = dark ? `rgba(200,198,192,` : `rgba(28,26,22,`;
+      const grad = ctx.createLinearGradient(ex, ey, sx, sy);
+      grad.addColorStop(0, col + '0)'); grad.addColorStop(0.7, col + a + ')'); grad.addColorStop(1, col + '0)');
+      ctx.strokeStyle = grad; ctx.lineWidth = 0.6;
+      ctx.beginPath(); ctx.moveTo(ex, ey); ctx.lineTo(sx, sy); ctx.stroke();
+      ctx.beginPath(); ctx.arc(sx, sy, 1, 0, Math.PI * 2);
+      ctx.fillStyle = dark ? `rgba(220,218,210,${a * 1.5})` : `rgba(20,18,14,${a * 1.5})`; ctx.fill();
+    });
+    ctx.restore();
+  }
+
+  function drawGridCells(t, alpha) {
+    const now = Date.now() - T0;
+    ctx.save();
+    CELLS.forEach(cell => {
+      const age = now - cell.delay; if (age < 0) return;
+      const cycle = (age % 4000) / 4000;
+      const flash = cycle < 0.05 ? (cycle / 0.05) : cycle < 0.15 ? (1 - (cycle - 0.05) / 0.1) : 0;
+      if (flash < 0.01) return;
+      const x = cell.col * GRID_SIZE, y = cell.row * GRID_SIZE;
+      ctx.fillStyle = dark ? `rgba(210,205,195,${flash * 0.06 * alpha})` : `rgba(30,28,24,${flash * 0.06 * alpha})`;
+      ctx.fillRect(x, y, GRID_SIZE, GRID_SIZE);
+      const da = flash * 0.25 * alpha;
+      ctx.fillStyle = dark ? `rgba(210,205,195,${da})` : `rgba(30,28,24,${da})`;
+      [[x,y],[x+GRID_SIZE,y],[x,y+GRID_SIZE],[x+GRID_SIZE,y+GRID_SIZE]].forEach(([cx,cy]) => {
+        ctx.beginPath(); ctx.arc(cx, cy, 1, 0, Math.PI * 2); ctx.fill();
+      });
+    });
+    ctx.restore();
+  }
+
+  function drawGridLines(alpha) {
+    const a = 0.04 * alpha;
+    const col = dark ? `rgba(200,198,190,${a})` : `rgba(30,28,22,${a})`;
+    ctx.save(); ctx.strokeStyle = col; ctx.lineWidth = 0.4;
+    for (let x = 0; x <= W; x += GRID_SIZE) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+    for (let y = 0; y <= H; y += GRID_SIZE) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+    ctx.restore();
+  }
+
+  /* ── MAIN LOOP ── */
+  ctx.fillStyle = `rgb(${DARK_BG[0]},${DARK_BG[1]},${DARK_BG[2]})`;
+  ctx.fillRect(0, 0, W, H);
+
+  (function loop() {
+    bgT += (bgTgt - bgT) * 0.04;
+    const r = Math.round(DARK_BG[0] + (LIGHT_BG[0] - DARK_BG[0]) * bgT);
+    const g = Math.round(DARK_BG[1] + (LIGHT_BG[1] - DARK_BG[1]) * bgT);
+    const b = Math.round(DARK_BG[2] + (LIGHT_BG[2] - DARK_BG[2]) * bgT);
+    ctx.fillStyle = `rgba(${r},${g},${b},0.2)`; ctx.fillRect(0, 0, W, H);
+    const t = (Date.now() - T0) / 50;
+    STARS.forEach(s => s.draw(t));
+    if (aiPhase === 1) { aiAlpha = Math.min(1, aiAlpha + 0.012); if (aiAlpha >= 1) aiPhase = 2; }
+    else if (aiPhase === 3) { aiAlpha = Math.max(0, aiAlpha - 0.008); if (aiAlpha <= 0) aiPhase = 0; }
+    if (aiAlpha > 0.001) {
+      drawGridLines(aiAlpha); drawGridCells(t, aiAlpha);
+      drawConnections(aiAlpha); drawStreams(t, aiAlpha); drawNodes(t, aiAlpha);
+    }
+    requestAnimationFrame(loop);
+  })();
+
+  /* ── WAVE CANVAS ── */
+  const waveCanvas = document.getElementById('waveCanvas');
+  const wctx = waveCanvas.getContext('2d');
+  let wW, wH, waveActive = false, waveRAF = null;
+
+  function resizeWave() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    wW = window.innerWidth; wH = window.innerHeight;
+    waveCanvas.width = wW * dpr; waveCanvas.height = wH * dpr;
+    wctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  const WV_NODES = Array.from({ length: 24 }, () => ({
+    x: Math.random() * W, y: Math.random() * H,
+    r: Math.random() * 1.6 + 0.5, phase: Math.random() * Math.PI * 2,
+    vx: (Math.random() - 0.5) * 0.15, vy: (Math.random() - 0.5) * 0.10,
+  }));
+  const WV_STREAMS = Array.from({ length: 35 }, () => ({
+    x: Math.random() * W, y: Math.random() * H,
+    len: Math.random() * 90 + 35, spd: Math.random() * 1.1 + 0.4,
+    angle: (Math.random() - 0.5) * 0.28 + Math.PI * 0.04,
+    al: Math.random() * 0.4 + 0.08, delay: Math.random() * 2500, born: 0,
+  }));
+  const WV_GRID = 64;
+  let WV_CELLS = [];
+
+  function wvDrawGrid(a, elapsed) {
+    const col = dark ? `rgba(200,196,188,${a * 0.07})` : `rgba(28,24,18,${a * 0.07})`;
+    wctx.save(); wctx.strokeStyle = col; wctx.lineWidth = 0.35;
+    for (let x = 0; x <= wW; x += WV_GRID) { wctx.beginPath(); wctx.moveTo(x,0); wctx.lineTo(x,wH); wctx.stroke(); }
+    for (let y = 0; y <= wH; y += WV_GRID) { wctx.beginPath(); wctx.moveTo(0,y); wctx.lineTo(wW,y); wctx.stroke(); }
+    WV_CELLS.forEach(cell => {
+      const age = elapsed - cell.delay; if (age < 0) return;
+      const cycle = (age % 3800) / 3800;
+      const flash = cycle < 0.04 ? cycle / 0.04 : cycle < 0.14 ? 1 - (cycle - 0.04) / 0.10 : 0;
+      if (flash < 0.01) return;
+      const x = cell.col * WV_GRID, y = cell.row * WV_GRID;
+      wctx.fillStyle = dark ? `rgba(205,200,190,${flash * 0.055 * a})` : `rgba(28,24,18,${flash * 0.055 * a})`;
+      wctx.fillRect(x, y, WV_GRID, WV_GRID);
+      wctx.fillStyle = dark ? `rgba(205,200,190,${flash * 0.22 * a})` : `rgba(28,24,18,${flash * 0.22 * a})`;
+      [[x,y],[x+WV_GRID,y],[x,y+WV_GRID],[x+WV_GRID,y+WV_GRID]].forEach(([cx,cy]) => {
+        wctx.beginPath(); wctx.arc(cx, cy, 0.9, 0, Math.PI*2); wctx.fill();
+      });
+    });
+    wctx.restore();
+  }
+
+  function wvDrawNodes(t, a) {
+    const MAX_D = 180;
+    wctx.save();
+    for (let i = 0; i < WV_NODES.length; i++) {
+      for (let j = i+1; j < WV_NODES.length; j++) {
+        const dx = WV_NODES[i].x - WV_NODES[j].x, dy = WV_NODES[i].y - WV_NODES[j].y;
+        const d = Math.sqrt(dx*dx + dy*dy);
+        if (d < MAX_D) {
+          const s = (1 - d/MAX_D) * 0.3 * a;
+          wctx.strokeStyle = dark ? `rgba(200,196,188,${s})` : `rgba(28,24,18,${s})`;
+          wctx.lineWidth = 0.4;
+          wctx.beginPath(); wctx.moveTo(WV_NODES[i].x, WV_NODES[i].y); wctx.lineTo(WV_NODES[j].x, WV_NODES[j].y); wctx.stroke();
+        }
+      }
+    }
+    wctx.restore();
+    WV_NODES.forEach(n => {
+      n.x += n.vx; n.y += n.vy;
+      if (n.x < -10) n.x = wW+10; if (n.x > wW+10) n.x = -10;
+      if (n.y < -10) n.y = wH+10; if (n.y > wH+10) n.y = -10;
+      const pulse = Math.sin(t * 0.025 + n.phase) * 0.5 + 0.5;
+      const fa = pulse * 0.65 * a;
+      wctx.save();
+      wctx.beginPath(); wctx.arc(n.x, n.y, n.r + pulse * 0.7, 0, Math.PI*2);
+      wctx.fillStyle = dark ? `rgba(210,204,194,${fa})` : `rgba(32,28,20,${fa})`; wctx.fill();
+      wctx.restore();
+    });
+  }
+
+  function wvDrawStreams(elapsed, a) {
+    wctx.save();
+    WV_STREAMS.forEach(s => {
+      if (elapsed < s.delay) return;
+      const age = (elapsed - s.delay) * 0.001;
+      const dist = (age * s.spd * 75) % (wW + 200);
+      const sx = s.x + Math.cos(s.angle) * dist, sy = s.y + Math.sin(s.angle) * dist;
+      const ex = sx - Math.cos(s.angle) * s.len, ey = sy - Math.sin(s.angle) * s.len;
+      const fa = s.al * a * 0.75;
+      const col = dark ? `rgba(200,196,188,` : `rgba(28,24,18,`;
+      const g = wctx.createLinearGradient(ex, ey, sx, sy);
+      g.addColorStop(0, col+'0)'); g.addColorStop(0.6, col+fa+')'); g.addColorStop(1, col+'0)');
+      wctx.strokeStyle = g; wctx.lineWidth = 0.55;
+      wctx.beginPath(); wctx.moveTo(ex, ey); wctx.lineTo(sx, sy); wctx.stroke();
+      wctx.beginPath(); wctx.arc(sx, sy, 0.9, 0, Math.PI*2);
+      wctx.fillStyle = dark ? `rgba(215,210,200,${fa*1.4})` : `rgba(22,18,12,${fa*1.4})`; wctx.fill();
+    });
+    wctx.restore();
+  }
+
+  function startWave() {
+    if (waveActive) return;
+    waveActive = true; resizeWave();
+    WV_CELLS = [];
+    for (let row = 0; row <= Math.ceil(wH / WV_GRID); row++)
+      for (let col = 0; col <= Math.ceil(wW / WV_GRID); col++)
+        WV_CELLS.push({ row, col, delay: Math.random() * 3000 });
+    WV_STREAMS.forEach(s => { s.born = Date.now(); });
+    waveCanvas.classList.add('visible');
+    let wvA = 0; const wT0 = Date.now();
+    function wloop() {
+      if (!waveActive) return;
+      wvA = Math.min(1, wvA + 0.008);
+      wctx.clearRect(0, 0, wW, wH);
+      const t = (Date.now() - wT0) / 50;
+      const elapsed = Date.now() - wT0;
+      wvDrawGrid(wvA, elapsed); wvDrawStreams(elapsed, wvA); wvDrawNodes(t, wvA);
+      waveRAF = requestAnimationFrame(wloop);
+    }
+    wloop();
+  }
+
+  function stopWave() {
+    waveActive = false; waveCanvas.classList.remove('visible');
+    if (waveRAF) { cancelAnimationFrame(waveRAF); waveRAF = null; }
+    setTimeout(() => wctx.clearRect(0, 0, wW, wH), 1200);
+  }
+
+  /* ── DECK ── */
+  const deckEl = document.getElementById('deck');
+  const hintEl = document.getElementById('hint');
+  const cards  = Array.from(deckEl.querySelectorAll('.card'));
+  const N      = cards.length;
+  window.order = [0, 1];   // expose for register callback
+  let busy = false, formActive = false;
+
+  const TILT = 6, SHFT = 8, SC = 0.032;
+  function stackTr(d) {
+    const sign = d % 2 === 0 ? 1 : -1;
+    return `rotateZ(${sign * d * TILT}deg) translateY(${d * SHFT}px) scale(${1 - d * SC})`;
+  }
+  function sh0() { return dark ? '0 22px 60px rgba(0,0,0,0.72)' : '0 24px 56px rgba(0,0,0,0.32)'; }
+  function sh1() { return dark ? '0 5px 16px rgba(0,0,0,0.55)'  : '0 8px 20px rgba(0,0,0,0.2)'; }
+
+  function render(anim) {
+    const ease = 'transform 420ms cubic-bezier(0.34,1.2,0.64,1), box-shadow 350ms, border-color 300ms';
+    order.forEach((ci, d) => {
+      const card = cards[ci], top = d === 0;
+      card.style.transition  = anim ? ease : 'none';
+      card.style.zIndex      = N - d;
+      card.style.transform   = stackTr(d);
+      card.style.cursor      = top && !formActive ? 'pointer' : 'default';
+      card.classList.toggle('top', top);
+      card.style.borderColor = top
+        ? (card.dataset.id === '0' ? 'var(--c0b)' : 'var(--c1b)')
+        : 'var(--bd)';
+      card.style.boxShadow = top ? sh0() : sh1();
+    });
+  }
+  render(false);
+
+  window.cycle = function cycle() {
+    if (busy || formActive) return;
+    busy = true;
+    const bi = order[N - 1], bc = cards[bi];
+    bc.style.transition = 'transform 155ms cubic-bezier(0.4,0,1,1)';
+    bc.style.zIndex = N + 10;
+    bc.style.transform = 'rotateZ(0deg) translateY(-48px) translateX(10px) scale(1.04)';
+    setTimeout(() => {
+      order = [bi, ...order.slice(0, N - 1)];
+      window.order = order;
+      const e2 = 'transform 300ms cubic-bezier(0.22,1,0.36,1), box-shadow 280ms, border-color 260ms';
+      bc.style.transition = e2; bc.style.transform = stackTr(0);
+      bc.style.borderColor = bc.dataset.id === '0' ? 'var(--c0b)' : 'var(--c1b)';
+      bc.style.boxShadow = sh0(); bc.classList.add('top');
+      order.forEach((ci, d) => {
+        if (d === 0) return;
+        const c = cards[ci];
+        c.style.transition = e2; c.style.zIndex = N - d;
+        c.style.transform = stackTr(d); c.style.borderColor = 'var(--bd)';
+        c.style.boxShadow = sh1(); c.classList.remove('top');
+      });
+      setTimeout(() => { busy = false; }, 310);
+    }, 165);
+  };
+
+  window.openForm = function openForm(card) {
+    formActive = true;
+    hintEl.classList.add('gone');
+    card.classList.add('open');
+    card.style.transition = 'transform 450ms cubic-bezier(0.34,1.2,0.64,1), box-shadow 360ms';
+    card.style.transform  = 'rotateZ(0deg) translateY(-10px) scale(1.015)';
+    card.style.boxShadow  = sh0();
+    // Init risk analysis on sign-in card open
+    if (card.dataset.id === '0') initRisk();
+    setTimeout(() => { const i = card.querySelector('input'); if (i) i.focus(); }, 460);
+  };
+
+  window.closeForm = function closeForm(card) {
+    formActive = false;
+    card.classList.remove('open');
+    card.querySelectorAll('input').forEach(i => i.value = '');
+    hintEl.classList.remove('gone');
+    // Reset login phases
+    if (card.dataset.id === '0') goToLoginPhase(1);
+    // Reset register steps
+    if (card.dataset.id === '1') {
+      document.getElementById('reg-step1').classList.add('active');
+      document.getElementById('reg-step2').classList.remove('active');
+    }
+    render(true);
+  };
+
+  deckEl.addEventListener('click', e => {
+    if (e.target.classList.contains('btn-back') ||
+        e.target.id === 'back-login' || e.target.id === 'back-reg') {
+      e.stopPropagation();
+      closeForm(e.target.closest('.card')); return;
+    }
+    const card = e.target.closest('.card'); if (!card) return;
+    const d = order.indexOf(parseInt(card.dataset.id));
+    if (d === 0) { if (!formActive) openForm(card); } else cycle();
+  });
+
+  /* ── ENTER / EXIT ── */
+  const enterBtn = document.getElementById('enterBtn');
+  const overlay  = document.getElementById('overlay');
+  const exitBtn  = document.getElementById('exitBtn');
+  let timer = null;
+
+  if (new URLSearchParams(location.search).get('leave') === '1') {
+    bExp = true;
+    STARS.forEach(s => { s.y = s.ep; s.py = s.ep; });
+    enterBtn.classList.add('hidden');
+  }
+
+  window.__triggerLeave = function() {
+    overlay.style.transition = 'none'; overlay.classList.add('show');
+    requestAnimationFrame(() => {
+      overlay.style.transition = '';
+      startWave(); aiAlpha = 1; aiPhase = 2; exitBtn.click();
+    });
+  };
+
+  enterBtn.addEventListener('mouseover', () => { if (!bExp) bCol = true; });
+  enterBtn.addEventListener('mouseout',  () => { if (!bExp) bCol = false; });
+  enterBtn.addEventListener('click', () => {
+    bCol = false; bExp = true; enterBtn.classList.add('hidden');
+    aiPhase = 1;
+    timer = setTimeout(() => { overlay.classList.add('show'); startWave(); }, 2400);
+  });
+
+  exitBtn.addEventListener('click', () => {
+    overlay.classList.remove('show'); stopWave(); clearTimeout(timer); aiPhase = 3;
+    setTimeout(() => {
+      cards.forEach(c => closeForm(c));
+      order = [0, 1]; window.order = order; render(false);
+      hintEl.classList.remove('gone'); formActive = false;
+    }, 500);
+    bExp = false; bRet = true;
+    setTimeout(() => { bRet = false; enterBtn.classList.remove('hidden'); }, 5000);
+  });
+
+})();
+
+/* ── PAGE TRANSITION ── */
+const veil = document.getElementById('pageVeil');
+function navigateTo(url) {
+  veil.classList.add('in');
+  setTimeout(() => { window.location.href = url; }, 430);
+}
+veil.classList.add('in');
+requestAnimationFrame(() => requestAnimationFrame(() => veil.classList.remove('in')));
+
+if (new URLSearchParams(location.search).get('leave') === '1') {
+  history.replaceState(null, '', location.pathname);
+  veil.style.transition = 'none'; veil.style.opacity = '0';
+  window.addEventListener('load', () => {
+    setTimeout(() => { window.__triggerLeave && window.__triggerLeave(); }, 150);
+  });
+}
+</script>
 </body>
 </html>

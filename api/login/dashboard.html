@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Dashboard — Biometric Security Center</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080c10;
+    --surface: #0e1419;
+    --surface2: #121a22;
+    --border: #1e2730;
+    --accent: #00e5ff;
+    --accent2: #7b2fff;
+    --warn: #ff6b35;
+    --ok: #00ff88;
+    --text: #c8d8e8;
+    --muted: #4a6070;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:'Syne',sans-serif; min-height:100vh; }
+  body::before {
+    content:''; position:fixed; inset:0;
+    background-image: linear-gradient(rgba(0,229,255,0.02) 1px,transparent 1px), linear-gradient(90deg,rgba(0,229,255,0.02) 1px,transparent 1px);
+    background-size:40px 40px; pointer-events:none;
+  }
+
+  /* NAV */
+  nav {
+    background:rgba(14,20,25,0.95); border-bottom:1px solid var(--border);
+    padding:0 32px; height:60px;
+    display:flex; align-items:center; justify-content:space-between;
+    position:sticky; top:0; z-index:100; backdrop-filter:blur(10px);
+  }
+  .nav-brand { display:flex; align-items:center; gap:12px; }
+  .nav-dot { width:8px; height:8px; background:var(--ok); border-radius:50%; animation:blink 1.5s infinite; }
+  @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+  .nav-title { font-family:'Space Mono',monospace; font-size:12px; color:var(--accent); letter-spacing:3px; text-transform:uppercase; }
+  .nav-right { display:flex; align-items:center; gap:16px; }
+  .nav-user { font-family:'Space Mono',monospace; font-size:11px; color:var(--muted); }
+  .logout-btn {
+    font-family:'Space Mono',monospace; font-size:10px; letter-spacing:2px;
+    padding:6px 14px; border:1px solid var(--border); background:transparent;
+    color:var(--muted); cursor:pointer; border-radius:2px; transition:all 0.2s;
+    text-transform:uppercase;
+  }
+  .logout-btn:hover { border-color:var(--warn); color:var(--warn); }
+
+  /* LAYOUT */
+  .container { max-width:1200px; margin:0 auto; padding:32px; }
+
+  /* WELCOME */
+  .welcome { margin-bottom:32px; animation:fadeUp 0.5s ease; }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(16px);} to{opacity:1;transform:translateY(0);} }
+  .welcome-sub { font-family:'Space Mono',monospace; font-size:10px; color:var(--accent); letter-spacing:4px; text-transform:uppercase; margin-bottom:8px; }
+  .welcome h1 { font-size:32px; font-weight:800; color:#fff; letter-spacing:-1px; }
+  .welcome h1 span { color:var(--accent); }
+
+  /* GRID */
+  .grid-4 { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px; }
+  .grid-2 { display:grid; grid-template-columns:2fr 1fr; gap:16px; margin-bottom:24px; }
+  .grid-3 { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:24px; }
+
+  /* CARD */
+  .card {
+    background:var(--surface); border:1px solid var(--border); border-radius:4px;
+    padding:24px; position:relative; overflow:hidden;
+    animation:fadeUp 0.5s ease both;
+  }
+  .card::before { content:''; position:absolute; top:0;left:0;right:0; height:1px; background:linear-gradient(90deg,transparent,var(--border),transparent); }
+  .card.accent-top::before { background:linear-gradient(90deg,transparent,var(--accent),transparent); }
+  .card.ok-top::before { background:linear-gradient(90deg,transparent,var(--ok),transparent); }
+  .card.warn-top::before { background:linear-gradient(90deg,transparent,var(--warn),transparent); }
+
+  .card-label { font-family:'Space Mono',monospace; font-size:9px; color:var(--muted); letter-spacing:3px; text-transform:uppercase; margin-bottom:8px; }
+  .card-value { font-size:28px; font-weight:800; color:#fff; letter-spacing:-1px; margin-bottom:4px; }
+  .card-value.ok { color:var(--ok); }
+  .card-value.warn { color:var(--warn); }
+  .card-value.accent { color:var(--accent); }
+  .card-sub { font-family:'Space Mono',monospace; font-size:10px; color:var(--muted); }
+
+  /* LAST AUTH BANNER */
+  .auth-banner {
+    background:rgba(0,255,136,0.05); border:1px solid rgba(0,255,136,0.2);
+    border-radius:4px; padding:16px 20px; margin-bottom:24px;
+    display:flex; align-items:center; gap:16px;
+    animation:fadeUp 0.5s ease both;
+  }
+  .auth-icon { font-size:20px; }
+  .auth-info { flex:1; }
+  .auth-info strong { font-weight:700; color:var(--ok); font-size:14px; }
+  .auth-info p { font-family:'Space Mono',monospace; font-size:10px; color:var(--muted); margin-top:2px; }
+  .auth-scores { display:flex; gap:20px; }
+  .auth-score-item { text-align:right; }
+  .auth-score-item span { font-family:'Space Mono',monospace; font-size:9px; color:var(--muted); display:block; }
+  .auth-score-item strong { font-family:'Space Mono',monospace; font-size:16px; color:var(--ok); }
+
+  /* CHART (SVG) */
+  .chart-title { font-family:'Space Mono',monospace; font-size:10px; color:var(--muted); letter-spacing:2px; text-transform:uppercase; margin-bottom:16px; }
+  .chart-wrap { position:relative; }
+  canvas { width:100%; display:block; }
+
+  /* RISK DIST */
+  .risk-bars { display:flex; flex-direction:column; gap:12px; margin-top:8px; }
+  .risk-row { display:flex; align-items:center; gap:12px; }
+  .risk-row-label { font-family:'Space Mono',monospace; font-size:10px; width:50px; }
+  .risk-row-bar { flex:1; height:8px; background:var(--border); border-radius:4px; overflow:hidden; }
+  .risk-row-fill { height:100%; border-radius:4px; transition:width 1s ease; }
+  .risk-row-count { font-family:'Space Mono',monospace; font-size:10px; color:var(--muted); width:24px; text-align:right; }
+
+  /* SESSION TABLE */
+  .session-table { width:100%; border-collapse:collapse; }
+  .session-table th { font-family:'Space Mono',monospace; font-size:9px; color:var(--muted); letter-spacing:2px; text-transform:uppercase; padding:8px 12px; text-align:left; border-bottom:1px solid var(--border); }
+  .session-table td { padding:10px 12px; font-family:'Space Mono',monospace; font-size:11px; border-bottom:1px solid rgba(30,39,48,0.5); }
+  .session-table tr:last-child td { border-bottom:none; }
+  .risk-pill { font-size:9px; padding:2px 8px; border-radius:2px; letter-spacing:1px; }
+  .risk-pill.LOW { background:rgba(0,255,136,0.1); color:var(--ok); }
+  .risk-pill.MEDIUM { background:rgba(255,107,53,0.1); color:var(--warn); }
+  .risk-pill.HIGH { background:rgba(255,50,50,0.1); color:#ff4444; }
+
+  /* MINI SPARKLINE */
+  .sparkline { display:flex; align-items:flex-end; gap:3px; height:40px; }
+  .spark-bar { flex:1; border-radius:1px; background:var(--accent); opacity:0.5; min-height:3px; }
+
+  /* LOADING */
+  .loading-screen {
+    position:fixed; inset:0; background:var(--bg);
+    display:flex; align-items:center; justify-content:center;
+    z-index:1000; flex-direction:column; gap:16px;
+  }
+  .loading-spinner {
+    width:40px; height:40px; border:2px solid var(--border);
+    border-top-color:var(--accent); border-radius:50%;
+    animation:spin 0.8s linear infinite;
+  }
+  @keyframes spin { to{transform:rotate(360deg);} }
+  .loading-text { font-family:'Space Mono',monospace; font-size:11px; color:var(--muted); letter-spacing:3px; }
+
+  @media(max-width:900px) { .grid-4{grid-template-columns:1fr 1fr;} .grid-2{grid-template-columns:1fr;} .grid-3{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+
+<div class="loading-screen" id="loading">
+  <div class="loading-spinner"></div>
+  <div class="loading-text">LOADING DASHBOARD...</div>
+</div>
+
+<nav>
+  <div class="nav-brand">
+    <div class="nav-dot"></div>
+    <div class="nav-title">AI Auth Dashboard</div>
+  </div>
+  <div class="nav-right">
+    <div class="nav-user" id="nav-email">—</div>
+    <button class="logout-btn" onclick="logout()">LOGOUT</button>
+  </div>
+</nav>
+
+<div class="container" id="main" style="display:none;">
+
+  <!-- Welcome -->
+  <div class="welcome">
+    <div class="welcome-sub">Security Center</div>
+    <h1>Welcome back, <span id="user-name">—</span></h1>
+  </div>
+
+  <!-- Last auth banner -->
+  <div class="auth-banner" id="auth-banner" style="display:none;">
+    <div class="auth-icon">🛡️</div>
+    <div class="auth-info">
+      <strong>Session Authenticated</strong>
+      <p id="banner-detail">—</p>
+    </div>
+    <div class="auth-scores">
+      <div class="auth-score-item">
+        <span>OVERALL</span>
+        <strong id="banner-score">—</strong>
+      </div>
+      <div class="auth-score-item">
+        <span>RISK</span>
+        <strong id="banner-risk">—</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Row -->
+  <div class="grid-4">
+    <div class="card accent-top">
+      <div class="card-label">Total Logins</div>
+      <div class="card-value accent" id="stat-logins">—</div>
+      <div class="card-sub">all time sessions</div>
+    </div>
+    <div class="card ok-top">
+      <div class="card-label">Avg Typing Speed</div>
+      <div class="card-value ok" id="stat-wpm">—</div>
+      <div class="card-sub">words per minute</div>
+    </div>
+    <div class="card accent-top">
+      <div class="card-label">Avg AI Score</div>
+      <div class="card-value accent" id="stat-score">—</div>
+      <div class="card-sub">biometric confidence</div>
+    </div>
+    <div class="card ok-top">
+      <div class="card-label">Member Since</div>
+      <div class="card-value" style="font-size:16px;color:#fff;" id="stat-since">—</div>
+      <div class="card-sub">account age</div>
+    </div>
+  </div>
+
+  <!-- Chart + Risk Dist -->
+  <div class="grid-2">
+    <div class="card">
+      <div class="chart-title">Biometric Score — Login History</div>
+      <canvas id="score-chart" height="160"></canvas>
+    </div>
+    <div class="card">
+      <div class="chart-title">Risk Distribution</div>
+      <div class="risk-bars">
+        <div class="risk-row">
+          <span class="risk-row-label" style="color:var(--ok)">LOW</span>
+          <div class="risk-row-bar"><div class="risk-row-fill" id="rb-low" style="background:var(--ok);width:0%"></div></div>
+          <span class="risk-row-count" id="rc-low">0</span>
+        </div>
+        <div class="risk-row">
+          <span class="risk-row-label" style="color:var(--warn)">MED</span>
+          <div class="risk-row-bar"><div class="risk-row-fill" id="rb-med" style="background:var(--warn);width:0%"></div></div>
+          <span class="risk-row-count" id="rc-med">0</span>
+        </div>
+        <div class="risk-row">
+          <span class="risk-row-label" style="color:#ff4444">HIGH</span>
+          <div class="risk-row-bar"><div class="risk-row-fill" id="rb-high" style="background:#ff4444;width:0%"></div></div>
+          <span class="risk-row-count" id="rc-high">0</span>
+        </div>
+      </div>
+
+      <div style="margin-top:24px;">
+        <div class="chart-title">WPM Trend</div>
+        <div class="sparkline" id="wpm-spark"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Session History Table -->
+  <div class="card">
+    <div class="chart-title">Login Session History</div>
+    <table class="session-table">
+      <thead>
+        <tr>
+          <th>Date / Time</th>
+          <th>WPM</th>
+          <th>Consistency</th>
+          <th>Biometric Score</th>
+          <th>Match Score</th>
+          <th>Overall</th>
+          <th>Risk</th>
+        </tr>
+      </thead>
+      <tbody id="session-tbody">
+        <tr><td colspan="7" style="color:var(--muted);text-align:center;padding:24px;">No sessions yet</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<script>
+  const API = "http://localhost:8000/api";
+
+  function logout() {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('auth_result');
+    window.location.href = 'login.html';
+  }
+
+  function fmt(n) { return typeof n === 'number' ? n.toFixed(1) : '—'; }
+  function fmtDate(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    return d.toLocaleDateString('th-TH') + ' ' + d.toLocaleTimeString('th-TH', {hour:'2-digit',minute:'2-digit'});
+  }
+
+  // ─── CHART (pure canvas) ───
+  function drawLineChart(canvasId, data, color) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas || data.length < 2) return;
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const W = canvas.offsetWidth, H = 160;
+    canvas.width = W * dpr; canvas.height = H * dpr;
+    ctx.scale(dpr, dpr);
+
+    const pad = 32;
+    const maxV = Math.max(...data, 100);
+    const minV = Math.min(...data, 0);
+    const range = maxV - minV || 1;
+
+    const pts = data.map((v, i) => ({
+      x: pad + (i / (data.length - 1)) * (W - pad * 2),
+      y: H - pad - ((v - minV) / range) * (H - pad * 2)
+    }));
+
+    // Grid lines
+    ctx.strokeStyle = 'rgba(30,39,48,0.8)'; ctx.lineWidth = 1;
+    [0, 25, 50, 75, 100].forEach(v => {
+      const y = H - pad - ((v - minV) / range) * (H - pad * 2);
+      if (y >= pad && y <= H - pad) {
+        ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(W - pad, y); ctx.stroke();
+        ctx.fillStyle = 'rgba(74,96,112,0.8)'; ctx.font = '9px Space Mono'; ctx.fillText(v, 4, y + 3);
+      }
+    });
+
+    // Fill gradient
+    const grad = ctx.createLinearGradient(0, pad, 0, H - pad);
+    grad.addColorStop(0, color.replace(')', ',0.3)').replace('rgb', 'rgba'));
+    grad.addColorStop(1, color.replace(')', ',0)').replace('rgb', 'rgba'));
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, H - pad);
+    pts.forEach(p => ctx.lineTo(p.x, p.y));
+    ctx.lineTo(pts[pts.length - 1].x, H - pad);
+    ctx.closePath();
+    ctx.fillStyle = grad; ctx.fill();
+
+    // Line
+    ctx.beginPath();
+    pts.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+    ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
+
+    // Dots
+    pts.forEach(p => {
+      ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+      ctx.fillStyle = color; ctx.fill();
+      ctx.strokeStyle = '#080c10'; ctx.lineWidth = 2; ctx.stroke();
+    });
+  }
+
+  // ─── MAIN LOAD ───
+  async function loadDashboard() {
+    const token = localStorage.getItem('access_token');
+    if (!token) { window.location.href = 'login.html'; return; }
+
+    try {
+      const res = await fetch(`${API}/dashboard`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.status === 401) { logout(); return; }
+      const data = await res.json();
+
+      // Nav
+      document.getElementById('nav-email').textContent = data.user.email;
+      document.getElementById('user-name').textContent = data.user.name;
+
+      // Stats
+      document.getElementById('stat-logins').textContent = data.user.login_count;
+      document.getElementById('stat-wpm').textContent = fmt(data.summary.avg_wpm) + ' wpm';
+      document.getElementById('stat-score').textContent = fmt(data.summary.avg_score) + '%';
+      document.getElementById('stat-since').textContent = new Date(data.user.created_at).toLocaleDateString('th-TH', {year:'numeric',month:'short'});
+
+      // Last auth banner
+      const ar = JSON.parse(localStorage.getItem('auth_result') || 'null');
+      if (ar) {
+        document.getElementById('auth-banner').style.display = 'flex';
+        document.getElementById('banner-detail').textContent = `Match: ${fmt(ar.match_score)}% | WPM: ${ar.wpm} | Biometric: ${fmt(ar.biometric_score)}%`;
+        document.getElementById('banner-score').textContent = fmt(ar.overall_score) + '%';
+        document.getElementById('banner-risk').textContent = ar.risk_level;
+      }
+
+      // Risk dist
+      const rd = data.summary.risk_distribution;
+      const total = (rd.LOW + rd.MEDIUM + rd.HIGH) || 1;
+      document.getElementById('rb-low').style.width = (rd.LOW / total * 100) + '%';
+      document.getElementById('rb-med').style.width = (rd.MEDIUM / total * 100) + '%';
+      document.getElementById('rb-high').style.width = (rd.HIGH / total * 100) + '%';
+      document.getElementById('rc-low').textContent = rd.LOW;
+      document.getElementById('rc-med').textContent = rd.MEDIUM;
+      document.getElementById('rc-high').textContent = rd.HIGH;
+
+      // Session table
+      const tbody = document.getElementById('session-tbody');
+      if (data.history.length > 0) {
+        tbody.innerHTML = data.history.map(s => `
+          <tr>
+            <td style="color:var(--text)">${fmtDate(s.date)}</td>
+            <td style="color:var(--accent)">${fmt(s.wpm)}</td>
+            <td>${fmt(s.consistency)}%</td>
+            <td>${fmt(s.overall_score)}%</td>
+            <td>${fmt(s.match_score)}%</td>
+            <td style="color:var(--ok);font-weight:700">${fmt(s.overall_score)}%</td>
+            <td><span class="risk-pill ${s.risk_level}">${s.risk_level}</span></td>
+          </tr>
+        `).join('');
+      }
+
+      // Charts — after DOM is ready
+      setTimeout(() => {
+        const scores = data.history.map(s => s.overall_score).reverse();
+        drawLineChart('score-chart', scores, '#00e5ff');
+
+        // WPM sparkline
+        const wpms = data.history.slice(0,10).map(s=>s.wpm).reverse();
+        const maxWpm = Math.max(...wpms, 1);
+        const spark = document.getElementById('wpm-spark');
+        spark.innerHTML = wpms.map(v => `<div class="spark-bar" style="height:${(v/maxWpm*36)+4}px;opacity:${0.4+v/maxWpm*0.6}"></div>`).join('');
+      }, 100);
+
+      // Show
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('main').style.display = 'block';
+
+    } catch (e) {
+      console.error(e);
+      document.getElementById('loading').innerHTML = `<div style="font-family:monospace;color:#ff4444;text-align:center;">Error loading dashboard<br><small>${e.message}</small><br><br><button onclick="logout()" style="margin-top:16px;padding:8px 20px;background:transparent;border:1px solid #ff4444;color:#ff4444;cursor:pointer;font-family:monospace;">LOGOUT</button></div>`;
+    }
+  }
+
+  loadDashboard();
+</script>
+</body>
+</html>

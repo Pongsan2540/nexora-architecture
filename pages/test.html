@@ -15,6 +15,9 @@
 
   <!-- Page-specific styles -->
   <link rel="stylesheet" href="../assets/css/register.css">
+
+  <link rel="stylesheet" href="../assets/css/stream-conditions.css">
+
 </head>
 <body>
 
@@ -68,119 +71,75 @@
 
   <div class="content">
 
-    <!-- STAT CARDS -->
-    <div class="stat-row">
-      <div class="sc">
-        <div class="sc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg></div>
-        <div class="sc-label">Total Users</div>
-        <div class="sc-val" id="statTotal">5</div>
-        <div class="sc-delta up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18,15 12,9 6,15"/></svg>All registered users</div>
+
+    <!-- COL 1: RULES -->
+    <div class="col-rules">
+      <div class="col-hdr">
+        <div class="col-hdr-title">List Stream</div>
+        <div class="lp-status">Stream Channel</div>
       </div>
-      <div class="sc moss">
-        <div class="sc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22,4 12,14.01 9,11.01"/></svg></div>
-        <div class="sc-label">Active</div>
-        <div class="sc-val" id="statActive">3</div>
-        <div class="sc-delta up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18,15 12,9 6,15"/></svg>Verified accounts</div>
-      </div>
-      <div class="sc">
-        <div class="sc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg></div>
-        <div class="sc-label">Pending</div>
-        <div class="sc-val" id="statPending">2</div>
-        <div class="sc-delta dn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6,9 12,15 18,9"/></svg>Awaiting approval</div>
+      <div class="cam-cards" id="camCards"></div>
+      <div class="rules-scroll" id="rulesContainer"></div>
+      <div class="add-rule-bar">
+        <button class="add-btn" onclick="showAddMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Rule</button>
+        <button class="add-btn" onclick="importRules()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Import</button>
       </div>
     </div>
 
-    <!-- TABLE -->
-    <div class="glass table-card">
-      <div class="ch">
-        <div>
-          <div class="ch-title">Registered Users</div>
-          <div class="ch-sub">All user accounts in the system</div>
+    <!-- COL 2: CAMERAS + VIDEO -->
+    <div class="col-video">
+      <!-- camera card list -->
+      <div class="cam-list-wrap">
+        <div class="cam-list-hdr">
+           <!--  <div class="cam-list-title">Cameras</div> -->
+          <div class="lp-status-2" style="font-size:9px;padding:2px 7px;">3 online</div>
         </div>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-          <div class="reg-search">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-            <input type="text" id="searchInput" placeholder="Search user…" oninput="filterUsers()"/>
+        <div class="cam-cards" id="camCards"></div>
+      </div>
+
+      <!-- video player -->
+      <div class="vid-wrap">
+        <video id="videoEl" autoplay muted playsinline controls></video>
+        <div class="vid-hud">
+          <div class="hud-chip">
+            <div class="hud-live" id="liveIndicator" style="background:var(--red);"></div>
+            <span id="camNameHud">เลือกกล้อง</span>
           </div>
-          <!-- onclick="openModal()" -->
-          <button class="btn-add">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Add User
-          </button>
+          <div class="hud-chip" id="hudClock" style="display:none;"></div>
+        </div>
+        <div class="vid-placeholder" id="vidPlaceholder">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="23,7 16,12 23,17"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+          <div class="vid-placeholder-title">เลือกกล้องด้านบน</div>
+          <div class="vid-placeholder-sub">คลิกที่ card กล้องเพื่อเริ่มดู stream</div>
         </div>
       </div>
-      <table class="tbl">
-        <thead>
-          <tr><th>User</th><th>Email</th><th>Role</th><th>Phone</th><th>Registered</th><th>Status</th></tr>
-        </thead>
-        <tbody id="userTableBody"></tbody>
-      </table>
+
+      <div class="vid-status">
+        <div class="vs-chip"><div class="vs-dot" style="background:var(--green);animation:pulse 2s infinite;"></div>Tokens <span id="tokenCount">0</span></div>
+        <div class="vs-chip">Hits <span id="hitCount" style="color:var(--green)">0</span></div>
+        <div style="flex:1"></div>
+        <div class="vs-chip" id="hlsState" style="color:var(--t2)">idle</div>
+      </div>
     </div>
+
+
+
+    
+
+
+    
 
   </div>
 </div>
 </div><!-- /shell -->
 
-<!-- ADD USER MODAL -->
-<div class="overlay" id="addModal" onclick="closeModalOutside(event)">
-  <div class="modal">
-    <div class="modal-hd">
-      <div class="modal-title">Add New User</div>
-      <button class="modal-close" onclick="closeModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-    </div>
+<!-- Glass UI — shared utilities -->
+<script src="../assets/js/glassui.js"></script>
 
-    <!-- Photo -->
-    <div class="photo-row">
-      <div class="photo-circle" id="mPhotoCircle" onclick="document.getElementById('fileModal').click()">
-        <span id="mPhotoIni" style="pointer-events:none">?</span>
-      </div>
-      <div class="photo-info">
-        <div class="photo-info-title">Profile Photo</div>
-        <div class="photo-info-hint">JPG, PNG or WEBP · Click photo or button to upload</div>
-        <div class="photo-btns">
-          <label class="btn-pick" for="fileModal">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            Upload
-          </label>
-          <button class="btn-rm" id="mRemoveBtn" onclick="clearModalPhoto()" style="display:none">Remove</button>
-        </div>
-      </div>
-    </div>
+<!-- Page-specific logic -->
+<script src="../assets/js/register.js"></script>
+<script src="../assets/js/stream-conditions.js"></script>
 
-    <div class="field-row">
-      <div class="field"><label>First Name</label><input type="text" id="fFirstName" placeholder="John" oninput="syncModalInitials()"/></div>
-      <div class="field"><label>Last Name</label> <input type="text" id="fLastName"  placeholder="Doe"  oninput="syncModalInitials()"/></div>
-    </div>
-    <div class="field"><label>Email</label><input type="email" id="fEmail" placeholder="john@example.com"/></div>
-    <div class="field-row">
-      <div class="field"><label>Phone</label><input type="text" id="fPhone" placeholder="+66 81 234 5678"/></div>
-      <div class="field"><label>Role</label>
-        <select id="fRole"><option>User</option><option>Editor</option><option>Administrator</option></select>
-      </div>
-    </div>
-    <div class="field-row">
-      <div class="field"><label>Department</label><input type="text" id="fDept" placeholder="e.g. Marketing"/></div>
-      <div class="field"><label>Status</label>
-        <select id="fStatus"><option>Active</option><option>Pending</option><option>Inactive</option></select>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
-      <button class="btn-submit" onclick="submitUser()">Add User</button>
-    </div>
-  </div>
-</div>
-
-<!-- DETAIL PANEL -->
-<div class="detail-overlay" id="detailOverlay" onclick="closeDetailOutside(event)">
-  <div class="detail-panel" id="detailPanel"></div>
-</div>
-
-  <!-- Glass UI — shared utilities -->
-  <script src="../assets/js/glassui.js"></script>
-
-  <!-- Page-specific logic -->
-  <script src="../assets/js/register.js"></script>
 
 </body>
 </html>

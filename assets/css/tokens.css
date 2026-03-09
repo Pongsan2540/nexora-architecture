@@ -11,6 +11,12 @@
    THEME: DARK  — 墨 sumi / charcoal
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 [data-theme="dark"] {
+  /* semantic status colors */
+  --green:    rgba(74,160,100,1);  --green-b:  rgba(74,160,100,0.15); --green-bd: rgba(74,160,100,0.30);
+  --amber:    rgba(200,160,60,1);  --amber-b:  rgba(200,160,60,0.14); --amber-bd: rgba(200,160,60,0.28);
+  --red:      rgba(180,70,60,1);   --red-b:    rgba(180,70,60,0.14);  --red-bd:   rgba(180,70,60,0.28);
+  --blue:     rgba(80,140,200,1);  --blue-b:   rgba(80,140,200,0.14); --blue-bd:  rgba(80,140,200,0.28);
+  --purple:   rgba(130,100,190,1); --purple-b: rgba(130,100,190,0.14);--purple-bd:rgba(130,100,190,0.28);
   /* backgrounds */
   --bg:       #0f0e0c;
   --ov:       rgba(13,12,10,0.96);
@@ -49,6 +55,12 @@
    THEME: LIGHT — washi paper
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 [data-theme="light"] {
+  /* semantic status colors */
+  --green:    rgba(40,130,70,1);   --green-b:  rgba(40,130,70,0.10);  --green-bd: rgba(40,130,70,0.25);
+  --amber:    rgba(160,120,20,1);  --amber-b:  rgba(160,120,20,0.10); --amber-bd: rgba(160,120,20,0.25);
+  --red:      rgba(160,50,40,1);   --red-b:    rgba(160,50,40,0.10);  --red-bd:   rgba(160,50,40,0.25);
+  --blue:     rgba(50,110,180,1);  --blue-b:   rgba(50,110,180,0.10); --blue-bd:  rgba(50,110,180,0.25);
+  --purple:   rgba(100,70,160,1);  --purple-b: rgba(100,70,160,0.10); --purple-bd:rgba(100,70,160,0.25);
   --bg:       #f7f7f5;
   --ov:       rgba(247,247,245,0.97);
 
