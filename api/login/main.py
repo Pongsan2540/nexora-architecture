@@ -15,6 +15,8 @@ import statistics
 from datetime import datetime, timedelta
 import os
 from dotenv import load_dotenv
+import argparse
+import uvicorn
 
 load_dotenv()
 
@@ -363,3 +365,18 @@ async def dashboard(user=Depends(get_current_user)):
 @app.get("/api/health")
 async def health():
     return {"status": "ok", "time": datetime.utcnow().isoformat()}
+
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser(description="MongoDB Read API")
+    parser.add_argument("--host", type=str, default="0.0.0.0")
+    parser.add_argument("--port", type=int, default=8000)
+    parser.add_argument("--reload", action="store_true")
+    args = parser.parse_args()
+
+    print(f"Server running on http://{args.host}:{args.port}")
+    # print(f"Swagger UI: http://{args.host}:{args.port}{API_PREFIX}/docs")
+    # print(f"OpenAPI JSON: http://{args.host}:{args.port}{API_PREFIX}/openapi.json")
+
+    uvicorn.run(app, host=args.host, port=args.port, reload=args.reload)
+

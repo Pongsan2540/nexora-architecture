@@ -83,41 +83,50 @@ resetIdle();
     ];
     */
 
+    let PLACES = [];
+    let EVENTS = [];
 
+    async function loadPlaces() {
+      try {
+        const res = await fetch(`${BASE_URL}/listPlaces`);
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
 
-let PLACES = [];
+        const data = await res.json();
 
-async function loadPlaces() {
-  try {
-    const res = await fetch(`${BASE_URL}/listPlaces`);
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status}`);
+        PLACES = Array.isArray(data) ? data : (data.places || []);
+
+        renderEventsList();
+        // renderPlaces();
+        // renderMarkers();
+      } catch (error) {
+        console.error("โหลดข้อมูล places ไม่สำเร็จ:", error);
+        PLACES = [];
+      }
     }
 
-    const data = await res.json();
+    async function loadEvents() {
+      try {
+        const res = await fetch(`${BASE_URL}/listEvents`);
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
 
-    PLACES = Array.isArray(data) ? data : (data.places || []);
+        const data = await res.json();
+        EVENTS = Array.isArray(data) ? data : (data.events || []);
+        renderEventsList();
+      } catch (error) {
+        console.error("โหลดข้อมูล events ไม่สำเร็จ:", error);
+        EVENTS = [];
+        renderEventsList();
+      }
+    }
 
-    renderEventsList();
-    // renderPlaces();
-    // renderMarkers();
-  } catch (error) {
-    console.error("โหลดข้อมูล places ไม่สำเร็จ:", error);
-    PLACES = [];
-  }
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  loadPlaces();
-});
-
-
-
-
-
-
-
-
+    document.addEventListener("DOMContentLoaded", async () => {
+      await loadPlaces();
+      await loadEvents();
+    });
 
     /* ── SAVE PLACES TO LOCALSTORAGE ── */
     function savePlacesLocal() {
@@ -333,7 +342,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
-    formAddPlace?.addEventListener('submit', (e) => {
+    formAddPlace?.addEventListener('submit', async (e) => {
       e.preventDefault();
       
       const newPlace = {
@@ -345,11 +354,11 @@ document.addEventListener("DOMContentLoaded", () => {
         img: document.getElementById('addPlaceImg').value || 'https://via.placeholder.com/800x400?text=No+Image',
         desc: document.getElementById('addPlaceDesc').value,
         hours: document.getElementById('addPlaceHours').value,
-        admission: document.getElementById('addPlaceAdmission').value,
+        level: document.getElementById('addPlaceLevel').value,
         events: []
-      };
+      }; 
 
-      if (!newPlace.name || !newPlace.lat || !newPlace.lng) {
+      if (!newPlace.name || isNaN(newPlace.lat) || isNaN(newPlace.lng)) {
         alert('Please fill in: Name, Latitude, Longitude');
         return;
       }
@@ -358,22 +367,35 @@ document.addEventListener("DOMContentLoaded", () => {
         alert('Latitude must be between -90 and 90');
         return;
       }
+
       if (newPlace.lng < -180 || newPlace.lng > 180) {
         alert('Longitude must be between -180 and 180');
         return;
       }
 
-      PLACES.push(newPlace);
-      savePlacesLocal();
-      
-      closeAddPlaceModal();
-      glMarkers.forEach(m => m.remove());
-      glMarkers.length = 0;
-      addAllMarkers();
-      renderPlacesList();
-      renderEventsList();
-      
-      alert('✅ Place added!');
+      try {
+        const res = await fetch(`${BASE_URL}/addPlaces`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(newPlace)
+        });
+
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
+
+        await loadPlaces();
+        await loadEvents();
+        closeAddPlaceModal();
+        alert('✅ Place added!');
+        location.reload();
+      } catch (error) {
+        await loadEvents();
+        console.error("โหลดข้อมูล places ไม่สำเร็จ:", error);
+        alert("❌ Save ไม่สำเร็จ");
+      }
     });
 
     /* ── POPUP ── */
@@ -472,16 +494,38 @@ document.addEventListener("DOMContentLoaded", () => {
     const evModal    = document.getElementById('evModal');
 
     function openEvModal(ev, placeName) {
-      document.getElementById('evModalImg').src       = ev.img.replace('/120/80', '/800/400');
-      document.getElementById('evModalTitle').textContent = ev.name;
-      document.getElementById('evModalPlace').textContent = placeName;
-      document.getElementById('evModalTime').textContent  = ev.time;
-      document.getElementById('evModalBadge').textContent = ev.badge;
-      document.getElementById('evModalVenue').textContent = ev.venue || placeName;
-      document.getElementById('evModalAdm').textContent   = ev.adm || 'Free';
-      document.getElementById('evModalDesc').textContent  = ev.desc || '—';
-      document.getElementById('evModalTags').innerHTML = (ev.tags||[])
-        .map(t => `<span class="ev-modal-tag">${t}</span>`).join('');
+      const modalImg = document.getElementById('evModalImg');
+      const fallbackImg = '../logo/icon/icon-search.avif';
+
+      const rawImg = ev.img || ev.image || '';
+      const safeImg = rawImg ? rawImg.replace('/120/80', '/800/400') : fallbackImg;
+
+      modalImg.src = safeImg;
+      modalImg.onerror = function () {
+        this.onerror = null;
+        this.src = fallbackImg;
+      };
+
+      const title = ev.name || ev.title || 'Untitled';
+      const place = placeName || ev.placeName || ev.place || ev.venue || ev.sub || 'Unknown Place';
+      const time = ev.time || ev.hours || '-';
+      const category = ev.badge || ev.tag || 'Event';
+      const venue = ev.venue || ev.placeName || ev.place || ev.sub || 'Unknown Place';
+      const level = ev.adm || ev.level || 'Free';
+      const desc = ev.desc || ev.description || '—';
+      const tags = ev.tags || (ev.tag ? [ev.tag] : []);
+
+      document.getElementById('evModalTitle').textContent = title;
+      document.getElementById('evModalPlace').textContent = place;
+      document.getElementById('evModalTime').textContent = time;
+      document.getElementById('evModalBadge').textContent = category;
+      document.getElementById('evModalVenue').textContent = venue;
+      document.getElementById('evModalAdm').textContent = level;
+      document.getElementById('evModalDesc').textContent = desc;
+      document.getElementById('evModalTags').innerHTML = tags
+        .map(t => `<span class="ev-modal-tag">${t}</span>`)
+        .join('');
+
       evBackdrop.classList.add('open');
       evModal.classList.add('open');
     }
@@ -499,24 +543,51 @@ document.addEventListener("DOMContentLoaded", () => {
     function renderEventsList() {
       const evItemsEl = document.getElementById('evItems');
       evItemsEl.innerHTML = '';
-      PLACES.forEach(p => {
-        (p.events||[]).forEach(ev => {
-          const el = document.createElement('div');
-          el.className = 'ev-item';
-          el.innerHTML = `
-            <img class="ev-thumb" src="${ev.img}" alt="${ev.name}" loading="lazy"/>
-            <div class="ev-info">
-              <div class="ev-name">${ev.name}</div>
-              <div class="ev-sub">${p.name} · ${ev.time}</div>
-            </div>
-            <div class="ev-badge">${ev.badge}</div>`;
-          el.addEventListener('click', () => {
-            document.querySelectorAll('.ev-item').forEach(e => e.classList.remove('active'));
-            el.classList.add('active');
-            openEvModal(ev, p.name);
-          });
-          evItemsEl.appendChild(el);
+
+      if (!EVENTS.length) {
+        evItemsEl.innerHTML = `<div class="ev-empty">No event records found.</div>`;
+        return;
+      }
+
+      EVENTS.forEach(ev => {
+        const placeName =
+          ev.placeName ||
+          ev.place ||
+          ev.venue ||
+          ev.sub ||
+          'Unknown Place';
+
+        const badge =
+          ev.badge ||
+          ev.tag ||
+          'Event';
+
+        const timeText =
+          ev.time ||
+          ev.hours ||
+          '-';
+
+        const el = document.createElement('div');
+        el.className = 'ev-item';
+        el.innerHTML = `
+          <img class="ev-thumb"
+              src="${ev.img || '../logo/icon/icon-search.avif'}"
+              alt="${ev.name || 'Event'}"
+              loading="lazy"
+              onerror="this.onerror=null;this.src='../logo/icon/icon-search.avif';"/>
+          <div class="ev-info">
+            <div class="ev-name">${ev.name || 'Untitled Event'}</div>
+            <div class="ev-sub">${placeName} · ${timeText}</div>
+          </div>
+          <div class="ev-badge">${badge}</div>`;
+
+        el.addEventListener('click', () => {
+          document.querySelectorAll('.ev-item').forEach(e => e.classList.remove('active'));
+          el.classList.add('active');
+          openEvModal(ev, placeName);
         });
+
+        evItemsEl.appendChild(el);
       });
     }
 

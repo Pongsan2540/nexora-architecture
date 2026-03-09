@@ -5,11 +5,12 @@ import uvicorn
 from pymongo import MongoClient
 from pprint import pprint
 
-client = MongoClient("mongodb://localhost:27017")
+# client = MongoClient("mongodb://localhost:27017")
+client = MongoClient("mongodb://root:example@localhost:27017/?authSource=admin")
 db = client["ai_login"]
 collection_users = db["users"]
 collection_location = db["location"]
-
+collection_event = db["event"]
                                                                                
 API_PREFIX = "/nexora/api"
 
@@ -89,7 +90,30 @@ def get_places():
 
     return list_loction
 
+@api.post("/addPlaces")
+async def create_place(place: dict):
 
+    try:
+        collection_location.insert_one(place)
+        return {"status": "ok"}
+    except Exception as e :
+        return {"status": "failed"}
+
+def serialize_doc(doc):
+    doc["_id"] = str(doc["_id"])
+    return doc
+
+@api.get("/listEvents")
+async def list_events(): 
+
+    docs_event = list(collection_event.find())
+
+    list_evebt = []
+    for i in docs_event:
+        i["_id"] = str(i["_id"])
+        list_evebt.append(i)
+
+    return list_evebt 
 
 app.include_router(api)
 
