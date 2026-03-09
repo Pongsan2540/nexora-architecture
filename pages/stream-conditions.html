@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Camera Stream — Glass UI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.7/hls.min.js"></script>
+
+<!-- Glass UI — shared styles -->
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+
+<link rel="stylesheet" href="../assets/css/stream-conditions.css">
+</head>
+<body>
+
+<div id="pageVeil"></div>
+<div class="noise"></div>
+<canvas id="bgCanvas" style="position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:2;"></canvas>
+
+<div class="shell">
+
+<!-- ── SIDEBAR ── -->
+<div id="sidebar-container"></div>
+
+<!-- ── MAIN ── -->
+<div class="main">
+  <header class="topbar">
+    <div class="topbar-title">Stream <span>setup · config</span></div>
+    <div class="tb-spacer"></div>
+    <div class="tb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></div>
+    <button class="theme-btn" id="themeBtn">
+      <svg class="i-moon" width="15" height="15" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="0.9"><path d="M11.8 8.6A5.2 5.2 0 014.4 1.2a5.2 5.2 0 100 10.4 5.2 5.2 0 007.4-3z"/></svg>
+      <svg class="i-sun"  width="15" height="15" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="0.9"><circle cx="6.5" cy="6.5" r="2.4"/><line x1="6.5" y1="1" x2="6.5" y2="2.3"/><line x1="6.5" y1="10.7" x2="6.5" y2="12"/><line x1="1" y1="6.5" x2="2.3" y2="6.5"/><line x1="10.7" y1="6.5" x2="12" y2="6.5"/><line x1="2.7" y1="2.7" x2="3.6" y2="3.6"/><line x1="9.4" y1="9.4" x2="10.3" y2="10.3"/><line x1="10.3" y1="2.7" x2="9.4" y2="3.6"/><line x1="3.6" y1="9.4" x2="2.7" y2="10.3"/></svg>
+    </button>
+  </header>
+
+  <div class="content">
+
+    <!-- COL 1: RULES -->
+    <div class="col-rules">
+      <div class="col-hdr">
+        <div class="col-hdr-title">List Stream</div>
+        <div class="lp-status">Stream Channel</div>
+      </div>
+      <div class="cam-cards" id="camCards"></div>
+      <div class="rules-scroll" id="rulesContainer"></div>
+      <div class="add-rule-bar">
+        <button class="add-btn" onclick="showAddMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Rule</button>
+        <button class="add-btn" onclick="importRules()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Import</button>
+      </div>
+    </div>
+
+    <!-- COL 2: CAMERAS + VIDEO -->
+    <div class="col-video">
+      <!-- camera card list -->
+      <div class="cam-list-wrap">
+        <div class="cam-list-hdr">
+           <!--  <div class="cam-list-title">Cameras</div> -->
+          <div class="lp-status-2" style="font-size:9px;padding:2px 7px;">3 online</div>
+        </div>
+        <div class="cam-cards" id="camCards"></div>
+      </div>
+
+      <!-- video player -->
+      <div class="vid-wrap">
+        <video id="videoEl" autoplay muted playsinline controls></video>
+        <div class="vid-hud">
+          <div class="hud-chip">
+            <div class="hud-live" id="liveIndicator" style="background:var(--red);"></div>
+            <span id="camNameHud">เลือกกล้อง</span>
+          </div>
+          <div class="hud-chip" id="hudClock" style="display:none;"></div>
+        </div>
+        <div class="vid-placeholder" id="vidPlaceholder">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="23,7 16,12 23,17"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+          <div class="vid-placeholder-title">เลือกกล้องด้านบน</div>
+          <div class="vid-placeholder-sub">คลิกที่ card กล้องเพื่อเริ่มดู stream</div>
+        </div>
+      </div>
+
+      <div class="vid-status">
+        <div class="vs-chip"><div class="vs-dot" style="background:var(--green);animation:pulse 2s infinite;"></div>Tokens <span id="tokenCount">0</span></div>
+        <div class="vs-chip">Hits <span id="hitCount" style="color:var(--green)">0</span></div>
+        <div style="flex:1"></div>
+        <div class="vs-chip" id="hlsState" style="color:var(--t2)">idle</div>
+      </div>
+    </div>
+
+    <!-- COL 3: RESULTS / JSON / STATS -->
+    <div class="col-config">
+      <div class="rp-tabs">
+        <div class="rp-tab on" data-tab="results" onclick="switchTab('results')">&#9654; Results</div>
+        <div class="rp-tab" data-tab="json"    onclick="switchTab('json')">{ } JSON</div>
+        <div class="rp-tab" data-tab="stats"   onclick="switchTab('stats')">&#8599; Stats</div>
+      </div>
+
+      <!-- RESULTS -->
+      <div class="rp-panel on" id="tab-results">
+        <div class="stream-feed-wrap">
+          <div class="stream-feed" id="streamFeed"></div>
+        </div>
+        <div class="det-wrap">
+          <div class="det-section-title">Detection Results</div>
+          <div id="detResults"><div class="det-empty">Run stream to see results…</div></div>
+        </div>
+        <div class="stream-ctrl-bar">
+          <div style="font-size:10px;font-weight:700;color:var(--t2);display:flex;align-items:center;gap:5px;">
+            <span style="width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;animation:pulse 2s infinite;"></span>
+            Live analysis
+          </div>
+          <div style="flex:1"></div>
+          <button class="sc-btn" onclick="clearFeed()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6l-1 14H6L5 6M8 6V4h8v2"/></svg>Clear</button>
+        </div>
+      </div>
+
+      <!-- JSON -->
+      <div class="rp-panel" id="tab-json">
+        <div class="json-wrap"><div class="json-box" id="jsonBox"></div></div>
+        <div class="rp-export">
+          <button class="exp-btn hi" onclick="copyJSON()">Copy JSON</button>
+          <button class="exp-btn" onclick="downloadJSON()">Download .json</button>
+        </div>
+      </div>
+
+      <!-- STATS -->
+      <div class="rp-panel" id="tab-stats">
+        <div class="stats-scroll" id="statsPanel"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<!-- ADD RULE MENU -->
+<div id="addMenu" onclick="hideAddMenu(event)">
+  <div class="add-menu-box" onclick="event.stopPropagation()">
+    <div style="font-size:9px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--t2);padding:4px 10px 7px;">Rule Type</div>
+    <div class="menu-item" onclick="addRule('match')"><span class="menu-dot" style="background:var(--green)"></span>Match — detect a pattern</div>
+    <div class="menu-item" onclick="addRule('block')"><span class="menu-dot" style="background:var(--red)"></span>Block — stop the stream</div>
+    <div class="menu-item" onclick="addRule('flag')"><span class="menu-dot" style="background:var(--amber)"></span>Flag — annotate tokens</div>
+    <div class="menu-item" onclick="addRule('transform')"><span class="menu-dot" style="background:var(--blue)"></span>Transform — rewrite output</div>
+    <div class="menu-item" onclick="addRule('route')"><span class="menu-dot" style="background:var(--purple)"></span>Route — forward to agent</div>
+  </div>
+</div>
+
+
+
+<!-- Page-specific logic -->
+<script src="../assets/js/stream-conditions.js"></script>
+<script src="../assets/js/load-sidebar.js"></script>
+
+</body>
+</html>

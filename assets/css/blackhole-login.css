@@ -1,39 +1,70 @@
 /* blackhole-login.css — Page-specific styles */
-/* Shared tokens: ../css/tokens.css */
-/* Shared components: ../css/components.css */
+/* Shared tokens: ../assets/css/tokens.css    */
+/* Shared components: ../assets/css/components.css */
 
-/* ── base ── */
+/* ─────────────────────────────────────────────
+   CARD COLOR OVERRIDES
+   This page uses inverted card colors:
+   dark theme → light paper cards on black bg
+   light theme → dark ink cards on white bg
+───────────────────────────────────────────── */
+/* ─── TOKENS ─── */
+[data-theme="dark"] {
+  --bg: rgb(15,14,12);
+  --ov: rgba(15,14,12,0.82);
+  --bd: rgba(255,255,255,0.08);
+  --bd-hi: rgba(255,255,255,0.22);
+  --t0: #f0f0ee; --t1: #909088; --t2: #c0c0b8; --t3: #dcdcd8;
+  --c0: #d8d4ce; --c0a: #6b6058; --c0b: rgba(107,96,88,0.25);
+  --c1: #cdd0cc; --c1a: #576056; --c1b: rgba(87,96,86,0.25);
+}
+[data-theme="light"] {
+  --bg: rgb(247,247,245);
+  --ov: rgba(247,247,245,0.82);
+  --bd: rgba(0,0,0,0.10);
+  --bd-hi: rgba(0,0,0,0.28);
+  --t0: #f0f0ee; --t1: #909088; --t2: #c0c0b8; --t3: #dcdcd8;
+  --c0: #1a1a18; --c0a: #a8a8a0; --c0b: rgba(168,168,160,0.30);
+  --c1: #282826; --c1a: #98988e; --c1b: rgba(152,152,142,0.30);
+}
+
+/* ─── RESET ─── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body {
-  height: 100%;
-  background: var(--bg);
-  overflow: hidden;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  font-weight: 500;
-  -webkit-font-smoothing: antialiased;
+  height: 100%; background: var(--bg); overflow: hidden;
+  font-family: 'Inter', system-ui, sans-serif; font-weight: 500;
+  -webkit-font-smoothing: subpixel-antialiased;
   transition: background 700ms;
 }
 
-/* ── canvas ── */
+/* ─── PAGE VEIL ─── */
+#pageVeil {
+  position: fixed; inset: 0; z-index: 9999;
+  background: var(--bg); opacity: 0;
+  pointer-events: none;
+  transition: opacity 420ms ease;
+}
+#pageVeil.in { opacity: 1; pointer-events: all; }
+
+/* ─── BLACKHOLE CONTAINER ─── */
 #blackhole { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
 canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
 
-/* ━━━ THEME TOGGLE ━━━ */
+/* ─── THEME BUTTON ─── */
 .theme-btn {
   position: fixed; top: 22px; right: 22px; z-index: 200;
-  width: 30px; height: 30px;
-  background: none; border: none; padding: 0;
+  width: 30px; height: 30px; background: none; border: none; padding: 0;
   display: flex; align-items: center; justify-content: center;
-  cursor: pointer; color: var(--t2);
-  transition: color 400ms;
+  cursor: pointer; color: var(--t2); transition: color 400ms;
 }
 .theme-btn:hover { color: var(--t1); }
 .theme-btn svg { position: absolute; transition: opacity 300ms, transform 360ms; }
 [data-theme="dark"]  .i-sun  { opacity: 0; transform: rotate(70deg) scale(0.3); }
-[data-theme="dark"]  .i-moon { opacity: 1; transform: rotate(0deg)  scale(1);   }
+[data-theme="dark"]  .i-moon { opacity: 1; transform: rotate(0deg) scale(1); }
 [data-theme="light"] .i-moon { opacity: 0; transform: rotate(-70deg) scale(0.3); }
-[data-theme="light"] .i-sun  { opacity: 1; transform: rotate(0deg)  scale(1);   }
+[data-theme="light"] .i-sun  { opacity: 1; transform: rotate(0deg) scale(1); }
 
-/* ━━━ ENTER ━━━ */
+/* ─── ENTER BUTTON ─── */
 .enter-btn {
   position: relative; z-index: 10;
   width: 220px; height: 220px; border-radius: 50%;
@@ -41,73 +72,65 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
   cursor: pointer; transition: opacity 700ms;
 }
 .enter-btn.hidden { opacity: 0; pointer-events: none; }
-
 .enter-word {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  font-size: 16px; font-weight: 600; font-style: normal;
-  letter-spacing: 0.22em; color: var(--t2);
-  transition: color 400ms;
+  font-size: 20px; font-weight: 900; font-style: normal;
+  letter-spacing: 0.22em;
+  color: var(--enter-col); transition: color 400ms;
 }
 .enter-line {
-  width: 24px; height: 1px; background: var(--t2);
+  width: 24px; height: 1px; background: var(--enter-col);
   transition: width 400ms, background 400ms;
 }
-.enter-btn:hover .enter-word { color: var(--t1); }
-.enter-btn:hover .enter-line { width: 36px; background: var(--t1); }
+.enter-btn:hover .enter-word { color: var(--enter-col-hi); }
+.enter-btn:hover .enter-line { width: 36px; background: var(--enter-col-hi); }
 
-/* ━━━ OVERLAY ━━━ */
+[data-theme="dark"]  { --enter-col: #2a2a28; --enter-col-hi: #1a1a18; }
+[data-theme="light"] { --enter-col: #ffffff; --enter-col-hi: #e8e8e6; }
+
+/* ─── OVERLAY ─── */
 .overlay {
   position: fixed; inset: 0; z-index: 20;
   display: flex; align-items: center; justify-content: center;
   opacity: 0; pointer-events: none; transition: opacity 600ms;
 }
 .overlay.show { opacity: 1; pointer-events: all; }
-
 .ov-bg {
   position: absolute; inset: 0;
   background: var(--ov); backdrop-filter: blur(28px);
   transition: background 700ms;
 }
-
-/* overlay grid drawn entirely by canvas — no CSS grid needed */
-
-/* single vertical brush stroke — right side asymmetric */
 .ov-stroke {
-  position: absolute; top: 0; bottom: 0;
-  right: 18%; width: 1px;
+  position: absolute; top: 0; bottom: 0; right: 18%; width: 1px;
   background: linear-gradient(to bottom, transparent 5%, var(--bd) 30%, var(--bd) 70%, transparent 95%);
   opacity: 0.4;
 }
-
-/* ── wave canvas ── */
 #waveCanvas {
-  position: absolute; inset: 0;
-  width: 100%; height: 100%;
+  position: absolute; inset: 0; width: 100%; height: 100%;
   pointer-events: none; z-index: 1;
   opacity: 0; transition: opacity 1200ms ease;
 }
 #waveCanvas.visible { opacity: 1; }
 
-/* ── scene ── */
+/* ─── SCENE ─── */
 .scene { position: relative; z-index: 30; display: flex; flex-direction: column; align-items: center; }
-
 .hint {
   font-size: 10px; font-weight: 300; letter-spacing: 0.38em;
   color: var(--t2); text-transform: lowercase;
-  margin-bottom: 40px; transition: opacity 300ms; user-select: none;
+  margin-bottom: 25px; transition: opacity 300ms; user-select: none;
 }
 .hint.gone { opacity: 0; pointer-events: none; }
 
-/* ━━━ DECK ━━━ */
+/* ─── DECK ─── */
 .deck {
-  position: relative; width: 310px; height: 400px;
+  position: relative; width: 310px; height: 440px;
   perspective: 900px; perspective-origin: 50% 118%;
 }
 
-/* ━━━ CARD ━━━ */
+/* ─── CARD ─── */
 .card {
   position: absolute; inset: 0;
-  padding: 44px 40px;
+  padding: 36px 38px 32px;
   border: 1px solid var(--bd);
   transform-origin: 50% 122%;
   cursor: pointer; user-select: none; overflow: hidden;
@@ -116,7 +139,6 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
 .card[data-id="0"] { background: var(--c0); }
 .card[data-id="1"] { background: var(--c1); }
 
-/* dark mode: cards are now light, so override text to dark tones */
 [data-theme="dark"] .card-index   { color: #6b6058; }
 [data-theme="dark"] .card-title   { color: #1a1614; }
 [data-theme="dark"] .card-desc    { color: #5a524a; }
@@ -133,7 +155,6 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
 [data-theme="dark"] .btn-go       { color: #4a4038; border-bottom-color: rgba(0,0,0,0.15); }
 [data-theme="dark"] .btn-go:hover { color: #1a1614; border-bottom-color: rgba(0,0,0,0.35); }
 
-/* hairline — single pixel top, no glow */
 .card::after {
   content: ''; position: absolute; top: 0; left: 40px; right: 40px; height: 1px;
   opacity: 0; transition: opacity 400ms;
@@ -142,67 +163,43 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
 .card[data-id="1"]::after { background: var(--c1a); }
 .card.top::after { opacity: 0.3; }
 
-/* ── text ── */
-.card-index {
-  font-size: 10px; font-weight: 300; letter-spacing: 0.22em;
-  color: var(--t2); margin-bottom: 32px;
-  transition: color 600ms;
-}
-
-.card-title {
-  font-family: 'Inter', sans-serif;
-  font-size: 42px; font-weight: 700; font-style: normal;
-  color: var(--t0); letter-spacing: -0.02em; line-height: 1.25;
-  margin-bottom: 14px; transition: color 700ms;
-}
-
-.card-desc {
-  font-size: 14px; font-weight: 500; color: var(--t1);
-  line-height: 1.9; letter-spacing: 0.02em;
-  margin-bottom: 44px; transition: color 700ms;
-}
-
-.card-cta {
-  font-size: 10px; letter-spacing: 0.32em; color: var(--t2);
-  transition: color 300ms, letter-spacing 300ms;
-}
+/* ─── CARD TEXT ─── */
+.card-index { font-size: 10px; font-weight: 300; letter-spacing: 0.22em; color: var(--t2); margin-bottom: 28px; transition: color 600ms; }
+.card-title { font-size: 40px; font-weight: 700; color: var(--t0); letter-spacing: -0.02em; line-height: 1.25; margin-bottom: 12px; transition: color 700ms; }
+.card-desc  { font-size: 14px; font-weight: 500; color: var(--t1); line-height: 1.9; letter-spacing: 0.02em; margin-bottom: 36px; transition: color 700ms; }
+.card-cta   { font-size: 10px; letter-spacing: 0.32em; color: var(--t2); transition: color 300ms, letter-spacing 300ms; }
 .card[data-id="0"].top:hover .card-cta { color: var(--c0a); letter-spacing: 0.42em; }
 .card[data-id="1"].top:hover .card-cta { color: var(--c1a); letter-spacing: 0.42em; }
-
 .back-lbl {
-  position: absolute; bottom: 36px; right: 40px;
+  position: absolute; bottom: 28px; right: 38px;
   font-size: 9px; letter-spacing: 0.28em; color: var(--t2);
   opacity: 0; transition: opacity 220ms;
 }
 .card:not(.top):hover .back-lbl { opacity: 0.55; }
 
-/* ── form ── */
+/* ─── CARD FORM WRAPPER ─── */
 .card-form { display: none; }
 .card.open .card-intro { display: none; }
 .card.open .card-form  { display: block; }
 .card.open { cursor: default; }
-.card.open .btn-back,
-.card.open .btn-go,
-.card.open input { pointer-events: all; }
+.card.open .btn-back, .card.open .btn-go, .card.open input { pointer-events: all; }
 
 .form-eyebrow {
   font-size: 10px; font-weight: 300; letter-spacing: 0.3em;
-  color: var(--t2); margin-bottom: 30px;
-  transition: color 600ms;
+  color: var(--t2); margin-bottom: 18px; transition: color 600ms;
 }
 
-.field { margin-bottom: 20px; }
+/* ─── FIELDS ─── */
+.field { margin-bottom: 16px; }
 .field label {
   display: block; font-size: 11px; font-weight: 600;
-  letter-spacing: 0.12em; color: var(--t2);
-  margin-bottom: 10px; transition: color 600ms;
+  letter-spacing: 0.12em; color: var(--t2); margin-bottom: 8px; transition: color 600ms;
 }
 .field input {
   width: 100%; background: transparent; border: none;
-  border-bottom: 1px solid var(--bd);
-  padding: 7px 0; color: var(--t0);
-  font-family: 'Inter', sans-serif;
-  font-size: 15px; font-weight: 500; letter-spacing: 0.08em;
+  border-bottom: 1px solid var(--bd); padding: 6px 0;
+  color: var(--t0); font-family: 'Inter', sans-serif;
+  font-size: 14px; font-weight: 500; letter-spacing: 0.06em;
   outline: none; transition: border-color 300ms, color 700ms;
 }
 .card[data-id="0"] .field input { caret-color: var(--c0a); }
@@ -210,11 +207,11 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
 .field input::placeholder { color: var(--t3); }
 .field input:focus { border-bottom-color: var(--bd-hi); }
 
+/* ─── FORM ROW (buttons) ─── */
 .form-row {
-  margin-top: 28px;
+  margin-top: 20px;
   display: flex; align-items: flex-end; justify-content: space-between;
 }
-
 .btn-back {
   background: none; border: none; font-family: 'Inter', sans-serif;
   font-size: 10px; font-weight: 300; letter-spacing: 0.28em;
@@ -222,19 +219,18 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
   transition: color 260ms; pointer-events: none;
 }
 .btn-back:hover { color: var(--t1); }
-
 .btn-go {
   background: none; border: none; font-family: 'Inter', sans-serif;
-  font-size: 15px; font-weight: 600; font-style: normal;
-  letter-spacing: 0.14em;
+  font-size: 14px; font-weight: 600; letter-spacing: 0.12em;
   color: var(--t1); cursor: pointer; padding: 0;
-  border-bottom: 1px solid var(--bd);
-  padding-bottom: 3px;
-  transition: color 260ms, border-color 260ms; pointer-events: none;
+  border-bottom: 1px solid var(--bd); padding-bottom: 3px;
+  transition: color 260ms, border-color 260ms, opacity 260ms; pointer-events: none;
 }
-.btn-go:hover { color: var(--t0); border-bottom-color: var(--bd-hi); }
+.btn-go:hover:not(.disabled) { color: var(--t0); border-bottom-color: var(--bd-hi); }
+.btn-go.disabled { opacity: 0.35; cursor: not-allowed; }
+.btn-go.loading { opacity: 0.5; cursor: wait; }
 
-/* ── exit ── */
+/* ─── EXIT ─── */
 .exit-row {
   position: absolute; bottom: 24px; left: 0; right: 0;
   z-index: 40; text-align: center;
@@ -245,3 +241,123 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
   color: var(--t2); cursor: pointer; transition: color 260ms;
 }
 .exit-row button:hover { color: var(--t1); }
+
+/* ─── ERROR MESSAGE ─── */
+.form-error {
+  font-size: 10px; font-weight: 400; letter-spacing: 0.06em;
+  color: #c0604a; margin-top: 8px; min-height: 14px;
+  transition: opacity 200ms;
+  font-family: 'Space Mono', monospace;
+}
+
+/* ─── RISK MINI PANEL ─── */
+.risk-mini {
+  margin-top: 12px; padding: 10px 12px;
+  border: 1px solid var(--bd); border-radius: 2px;
+  background: rgba(0,0,0,0.04);
+}
+[data-theme="dark"] .risk-mini { background: rgba(0,0,0,0.10); }
+.risk-mini-title {
+  font-size: 9px; letter-spacing: 0.22em; color: var(--c0a);
+  margin-bottom: 8px; font-family: 'Space Mono', monospace;
+}
+[data-theme="dark"] .risk-mini-title { color: #7a6e62; }
+.risk-bar-wrap { height: 3px; background: var(--bd); border-radius: 2px; overflow: hidden; margin-bottom: 7px; }
+.risk-bar-fill {
+  height: 100%; border-radius: 2px; width: 0%;
+  transition: width 0.6s ease, background 0.6s;
+  background: #88b080;
+}
+.risk-rows { display: flex; flex-direction: column; gap: 4px; }
+.risk-row { display: flex; justify-content: space-between; align-items: center; }
+.risk-row-name { font-size: 9px; color: var(--c0a); font-family: 'Space Mono', monospace; letter-spacing: 0.04em; }
+[data-theme="dark"] .risk-row-name { color: #7a6e62; }
+.risk-badge {
+  font-size: 8px; padding: 1px 6px; border-radius: 2px; letter-spacing: 0.08em;
+  font-family: 'Space Mono', monospace;
+}
+.risk-badge.low  { background: rgba(100,180,120,0.15); color: #70a878; }
+.risk-badge.med  { background: rgba(200,140,60,0.15);  color: #b08040; }
+.risk-badge.high { background: rgba(200,80,60,0.15);   color: #c05040; }
+[data-theme="dark"] .risk-badge.low  { background: rgba(80,130,90,0.20); color: #88b888; }
+[data-theme="dark"] .risk-badge.med  { background: rgba(160,110,50,0.20); color: #c09858; }
+[data-theme="dark"] .risk-badge.high { background: rgba(160,60,50,0.20); color: #c07060; }
+
+/* ─── BIOMETRIC SECTION ─── */
+.bio-section { display: none; }
+.bio-section.active { display: block; }
+
+.passphrase-box {
+  padding: 10px 12px;
+  border: 1px solid var(--bd); border-radius: 2px;
+  background: rgba(0,0,0,0.04); margin-bottom: 12px;
+}
+[data-theme="dark"] .passphrase-box { background: rgba(0,0,0,0.10); }
+
+.passphrase-text {
+  font-family: 'Space Mono', monospace; font-size: 11px;
+  color: var(--c0a); line-height: 1.9; letter-spacing: 0.06em;
+  margin-bottom: 8px; user-select: none;
+}
+[data-theme="dark"] .passphrase-text { color: #6b6058; }
+
+.char-dots { display: flex; flex-wrap: wrap; gap: 3px; margin-bottom: 8px; }
+.char-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--bd); transition: background 0.12s;
+}
+.char-dot.typed { background: #88a878; }
+[data-theme="dark"] .char-dot.typed { background: #6a8a5a; }
+.char-dot.wrong { background: #c07060; }
+
+.bio-input-field {
+  width: 100%; background: transparent; border: none;
+  border-top: 1px solid var(--bd); padding: 8px 0 2px;
+  color: var(--c0a); font-family: 'Space Mono', monospace;
+  font-size: 12px; outline: none; letter-spacing: 0.06em;
+}
+[data-theme="dark"] .bio-input-field { color: #1a1614; }
+
+.bio-viz {
+  height: 32px; display: flex; align-items: flex-end; gap: 2px;
+  padding: 3px 4px; border: 1px solid var(--bd);
+  border-radius: 2px; overflow: hidden; margin-bottom: 10px;
+  background: rgba(0,0,0,0.03);
+}
+[data-theme="dark"] .bio-viz { background: rgba(0,0,0,0.08); }
+.bio-bar { flex: 1; border-radius: 1px; min-height: 2px; transition: height 0.1s, opacity 0.1s; }
+.bio-bar.card0-bar { background: var(--c0a); opacity: 0.3; }
+.bio-bar.card1-bar { background: var(--c1a); opacity: 0.3; }
+.bio-bar.active { opacity: 0.9; }
+
+/* ─── ENROLLMENT ROUNDS ─── */
+.enroll-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 10px;
+}
+.enroll-round-label {
+  font-size: 9px; letter-spacing: 0.22em; color: var(--c1a);
+  font-family: 'Space Mono', monospace;
+}
+.enroll-status {
+  font-size: 9px; letter-spacing: 0.14em; color: var(--c1a);
+  font-family: 'Space Mono', monospace; font-style: italic;
+}
+.enroll-rounds {
+  display: flex; gap: 6px; margin-bottom: 10px;
+}
+.enroll-rnd {
+  flex: 1; height: 3px; border-radius: 2px;
+  background: var(--bd); transition: background 0.4s;
+}
+.enroll-rnd.done { background: #6a8a5a; }
+[data-theme="light"] .enroll-rnd.done { background: #5a7a4a; }
+
+/* ─── FONT SMOOTHING ─── */
+.card, .card input, .card label, .card .form-eyebrow,
+.card .btn-back, .card .btn-go, .card .card-title,
+.card .card-desc, .card .card-index, .card .card-cta {
+  -webkit-font-smoothing: subpixel-antialiased;
+  -moz-osx-font-smoothing: auto;
+  transform: translateZ(0);
+}

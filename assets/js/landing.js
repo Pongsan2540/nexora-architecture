@@ -1,5 +1,37 @@
 /* landing.js — Page-specific logic */
 /* Shared utilities: ../js/glassui.js */
+// ── Auth Guard ──
+if (!sessionStorage.getItem('nexora_auth')) {
+  document.documentElement.style.visibility = 'hidden';
+  setTimeout(() => window.location.href = '../pages/blackhole-login.html', 0);
+}
+
+// ── Prevent back button cache ──
+window.addEventListener('pageshow', (e) => {
+  if (e.persisted || !sessionStorage.getItem('nexora_auth')) {
+    document.documentElement.style.visibility = 'hidden';
+    window.location.href = '../pages/blackhole-login.html';
+  }
+});
+
+
+// ── Auto Logout on Idle (30 minutes) ──
+let idleTimer;
+const IDLE_LIMIT = 30 * 60 * 1000; // 30 นาที
+
+function resetIdle() {
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(() => {
+    sessionStorage.removeItem('nexora_auth');
+    window.location.href = '../pages/blackhole-login.html';
+  }, IDLE_LIMIT);
+}
+
+['mousemove', 'keydown', 'click', 'scroll', 'touchstart'].forEach(evt => {
+  window.addEventListener(evt, resetIdle);
+});
+
+resetIdle();
 
 // ── Page Transition ──
     const veil = document.getElementById('pageVeil');
@@ -10,8 +42,9 @@
     }
 
     function navigateBack() {
+      sessionStorage.removeItem('nexora_auth');
       veil.classList.add('in');
-      setTimeout(() => { window.location.href = 'blackhole-login.html?leave=1'; }, 430);
+      setTimeout(() => { window.location.href = '../pages/blackhole-login.html?leave=1'; }, 430);
     }
 
     // fade in on load
@@ -158,6 +191,10 @@
     }
 
     applyLayout(false);
+    // ลบ transition:none ออกหลัง first paint เพื่อให้ CSS transition ทำงานทันที
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      cards.forEach(card => { card.style.transition = ''; });
+    }));
 
     function goTo(next) {
       if (busy) return;
@@ -187,3 +224,4 @@
       dragStart = null;
       if (Math.abs(dx) > 40) goTo(dx < 0 ? current + 1 : current - 1);
     });
+

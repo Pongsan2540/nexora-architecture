@@ -607,11 +607,11 @@
   requestAnimationFrame(() => requestAnimationFrame(() => veil.classList.remove('in')));
 
   // simple navigation demo: on "continue" or "create" go to landing page
-  document.querySelectorAll('.btn-go').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      navigateTo('landing.html');
-    });
+  document.getElementById('btn-login').addEventListener('click', (e) => {
+    console.log('LOGIN CLICKED');
+    e.preventDefault();
+    sessionStorage.setItem('nexora_auth', '1');
+    navigateTo('../pages/landing.html');
   });
 
   // ── Auto-trigger leave animation if coming back from landing ──
