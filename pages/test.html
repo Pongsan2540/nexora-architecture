@@ -3,11 +3,13 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Nexora Register</title>
+  <title>Nexora Stream</title>
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.7/hls.min.js"></script>
+
 
   <!-- Glass UI — shared styles (load in this order) -->
   <link rel="stylesheet" href="../assets/css/tokens.css">
@@ -15,7 +17,6 @@
 
   <!-- Page-specific styles -->
   <link rel="stylesheet" href="../assets/css/register.css">
-
   <link rel="stylesheet" href="../assets/css/stream-conditions.css">
 
 </head>
@@ -33,7 +34,7 @@
 <aside class="sidebar">
   <div class="sb-logo">
     <div class="sb-logomark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="3,11 12,2 21,11 21,22 3,22"/></svg></div>
-    <div><div class="sb-title">Nexora</div><div style="font-size:10px;font-weight:600;color:var(--t2);letter-spacing:.04em;margin-top:1px;">Register</div></div>
+    <div><div class="sb-title">Nexora</div><div style="font-size:10px;font-weight:600;color:var(--t2);letter-spacing:.04em;margin-top:1px;">Stream</div></div>
   </div>
   <div class="sb-scroll">
     <div class="sb-section">Main</div>
@@ -45,7 +46,7 @@
     <div class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Stream </div>
     <div class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>Logs</div>
     <div class="sb-section">System</div>
-    <div class="sb-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>Register<span class="sb-pill" id="sbPill">5</span></div>
+    <div class="sb-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>Stream<span class="sb-pill" id="sbPill">5</span></div>
     <div class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>Setting<span class="sb-pill" id="sbPill">5</span></div>
     <div class="sb-item" onclick="navigateTo('blackhole-login.html')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg>Login</div>
   </div>
@@ -61,7 +62,7 @@
 <!-- MAIN -->
 <div class="main">
   <header class="topbar">
-    <div class="topbar-title">Register <span>User Management</span></div>
+    <div class="topbar-title">Stream <span>Management</span></div>
     <div class="tb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 10-16 0"/></svg></div>
     <button class="theme-btn" id="themeBtn">
       <svg class="i-moon" width="15" height="15" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="0.9"><path d="M11.8 8.6A5.2 5.2 0 014.4 1.2a5.2 5.2 0 100 10.4 5.2 5.2 0 007.4-3z"/></svg>
@@ -79,11 +80,11 @@
         <div class="lp-status">Stream Channel</div>
       </div>
       <div class="cam-cards" id="camCards"></div>
-      <div class="rules-scroll" id="rulesContainer"></div>
-      <div class="add-rule-bar">
+      <!-- <div class="rules-scroll" id="rulesContainer"></div> -->
+      <!-- <div class="add-rule-bar">
         <button class="add-btn" onclick="showAddMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Rule</button>
         <button class="add-btn" onclick="importRules()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Import</button>
-      </div>
+      </div> -->
     </div>
 
     <!-- COL 2: CAMERAS + VIDEO -->
@@ -94,7 +95,6 @@
            <!--  <div class="cam-list-title">Cameras</div> -->
           <div class="lp-status-2" style="font-size:9px;padding:2px 7px;">3 online</div>
         </div>
-        <div class="cam-cards" id="camCards"></div>
       </div>
 
       <!-- video player -->
@@ -122,9 +122,38 @@
       </div>
     </div>
 
+<!-- COL 3: RESULTS / JSON / STATS -->
+    <div class="col-config">
+      <div class="rp-tabs">
+        <div class="rp-tab on" data-tab="results" onclick="switchTab('results')">&#9654; Event</div>
+        <div class="rp-tab" data-tab="stats"   onclick="switchTab('stats')">&#8599; Stats</div>
+        <div class="rp-tab" data-tab="json"    onclick="switchTab('json')">{ } JSON</div>
+      </div>
+
+      <!-- RESULTS -->
+      <div class="rp-panel on" id="tab-results">
+        <div class="stream-feed-wrap">
+          <div class="stream-feed" id="streamFeed"></div>
+        </div>
+      </div>
+
+      <!-- JSON -->
+      <div class="rp-panel" id="tab-json">
+        <div class="json-wrap"><div class="json-box" id="jsonBox"></div></div>
+        <div class="rp-export">
+          <button class="exp-btn hi" onclick="copyJSON()">Copy JSON</button>
+          <button class="exp-btn" onclick="downloadJSON()">Download .json</button>
+        </div>
+      </div>
+
+      <!-- STATS -->
+      <div class="rp-panel" id="tab-stats">
+        <div class="stats-scroll" id="statsPanel"></div>
+      </div>
+    </div>
 
 
-    
+
 
 
     
@@ -132,6 +161,18 @@
   </div>
 </div>
 </div><!-- /shell -->
+
+<!-- ADD RULE MENU -->
+<div id="addMenu" onclick="hideAddMenu(event)">
+  <div class="add-menu-box" onclick="event.stopPropagation()">
+    <div style="font-size:9px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--t2);padding:4px 10px 7px;">Rule Type</div>
+    <div class="menu-item" onclick="addRule('match')"><span class="menu-dot" style="background:var(--green)"></span>Match — detect a pattern</div>
+    <div class="menu-item" onclick="addRule('block')"><span class="menu-dot" style="background:var(--red)"></span>Block — stop the stream</div>
+    <div class="menu-item" onclick="addRule('flag')"><span class="menu-dot" style="background:var(--amber)"></span>Flag — annotate tokens</div>
+    <div class="menu-item" onclick="addRule('transform')"><span class="menu-dot" style="background:var(--blue)"></span>Transform — rewrite output</div>
+    <div class="menu-item" onclick="addRule('route')"><span class="menu-dot" style="background:var(--purple)"></span>Route — forward to agent</div>
+  </div>
+</div>
 
 <!-- Glass UI — shared utilities -->
 <script src="../assets/js/glassui.js"></script>
