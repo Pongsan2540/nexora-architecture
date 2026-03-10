@@ -80,11 +80,24 @@
         <div class="lp-status">Stream Channel</div>
       </div>
       <div class="cam-cards" id="camCards"></div>
+
+      <!-- ADD RULE MENU -->
+      <div id="addMenu" onclick="hideAddMenu(event)">
+        <div class="add-menu-box" onclick="event.stopPropagation()">
+          <div style="font-size:9px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--t2);padding:4px 10px 7px;">Rule Type</div>
+          <div class="menu-item" onclick="addRule('match')"><span class="menu-dot" style="background:var(--green)"></span>Match — detect a pattern</div>
+          <div class="menu-item" onclick="addRule('block')"><span class="menu-dot" style="background:var(--red)"></span>Block — stop the stream</div>
+          <div class="menu-item" onclick="addRule('flag')"><span class="menu-dot" style="background:var(--amber)"></span>Flag — annotate tokens</div>
+          <div class="menu-item" onclick="addRule('transform')"><span class="menu-dot" style="background:var(--blue)"></span>Transform — rewrite output</div>
+          <div class="menu-item" onclick="addRule('route')"><span class="menu-dot" style="background:var(--purple)"></span>Route — forward to agent</div>
+        </div>
+      </div>
+
+
       <!-- <div class="rules-scroll" id="rulesContainer"></div> -->
-      <!-- <div class="add-rule-bar">
+      <div class="add-rule-bar">
         <button class="add-btn" onclick="showAddMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Rule</button>
-        <button class="add-btn" onclick="importRules()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Import</button>
-      </div> -->
+      </div>
     </div>
 
     <!-- COL 2: CAMERAS + VIDEO -->
@@ -161,18 +174,6 @@
   </div>
 </div>
 </div><!-- /shell -->
-
-<!-- ADD RULE MENU -->
-<div id="addMenu" onclick="hideAddMenu(event)">
-  <div class="add-menu-box" onclick="event.stopPropagation()">
-    <div style="font-size:9px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--t2);padding:4px 10px 7px;">Rule Type</div>
-    <div class="menu-item" onclick="addRule('match')"><span class="menu-dot" style="background:var(--green)"></span>Match — detect a pattern</div>
-    <div class="menu-item" onclick="addRule('block')"><span class="menu-dot" style="background:var(--red)"></span>Block — stop the stream</div>
-    <div class="menu-item" onclick="addRule('flag')"><span class="menu-dot" style="background:var(--amber)"></span>Flag — annotate tokens</div>
-    <div class="menu-item" onclick="addRule('transform')"><span class="menu-dot" style="background:var(--blue)"></span>Transform — rewrite output</div>
-    <div class="menu-item" onclick="addRule('route')"><span class="menu-dot" style="background:var(--purple)"></span>Route — forward to agent</div>
-  </div>
-</div>
 
 <!-- Glass UI — shared utilities -->
 <script src="../assets/js/glassui.js"></script>
