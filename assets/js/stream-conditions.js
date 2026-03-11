@@ -1419,64 +1419,111 @@ function renderStats() {
 
       <div class="edit-grid" style="display:grid;grid-template-columns:1fr;gap:10px;">
         <div>
-          <label class="stat-name">Setting</label>
-          <select class="sel" id="edit-setting-index" onchange="changeStatsSetting(this.value)">
-            ${optionsHtml}
-          </select>
+          <label class="stat-name">Model Prompt</label>
+          <input class="inp" id="edit-name" value="${escapeHtml(item.model_prompt || '')}">
         </div>
 
         <div>
-          <label class="stat-name">Name</label>
-          <input class="inp" id="edit-name" value="${escapeHtml(item.name || '')}">
+          <label class="stat-name">Text Prompt</label>
+          <input class="inp" id="edit-sub" value="${escapeHtml(item.config_prompt || '')}">
+        </div>
+        
+        <div>
+          <label class="stat-name">Status Prompt</label>
+          <span class="status-badge ${item.status_prompt ? 'status-on' : 'status-off'}">
+            ${escapeHtml(formatBool(item.status_prompt))}
+          </span>
         </div>
 
         <div>
-          <label class="stat-name">Sub</label>
-          <input class="inp" id="edit-sub" value="${escapeHtml(item.sub || '')}">
+          <label class="stat-name">Status Sub Prompt</label>
+          <span class="status-badge ${item.status_sub_prompt ? 'status-on' : 'status-off'}">
+            ${escapeHtml(formatBool(item.status_sub_prompt))}
+          </span>
         </div>
 
         <div>
-          <label class="stat-name">Tag</label>
-          <input class="inp" id="edit-tag" value="${escapeHtml(item.tag || '')}">
+          <label class="stat-name">Activate Prompt</label>
+          <div class="param-item bool-param-item">
+            <div class="bool-switch">
+              <label class="bool-opt">
+                <input type="radio" name="use_prompt" value="true" ${item.use_prompt ? 'checked' : ''}>
+                <span>ON</span>
+              </label>
+              <label class="bool-opt">
+                <input type="radio" name="use_prompt" value="false" ${!item.use_prompt ? 'checked' : ''}>
+                <span>OFF</span>
+              </label>
+            </div>
+          </div>
         </div>
 
         <div>
-          <label class="stat-name">Level</label>
-          <input class="inp" id="edit-level" value="${escapeHtml(item.level || '')}">
+          <label class="stat-name">Activate Sub Prompt</label>
+          <div class="param-item bool-param-item">
+            <div class="bool-switch">
+              <label class="bool-opt">
+                <input type="radio" name="use_sub_prompt" value="true" ${item.use_sub_prompt ? 'checked' : ''}>
+                <span>ON</span>
+              </label>
+              <label class="bool-opt">
+                <input type="radio" name="use_sub_prompt" value="false" ${!item.use_sub_prompt ? 'checked' : ''}>
+                <span>OFF</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <hr class="divider">
+
+        <div>
+          <label class="stat-name">Model Detect</label>
+          <input class="inp" id="edit-lat" value="${escapeHtml(item.model_detect ?? '')}">
         </div>
 
         <div>
-          <label class="stat-name">Hours</label>
-          <input class="inp" id="edit-hours" value="${escapeHtml(item.hours || '')}">
+          <label class="stat-name">Valus Threshold</label>
+          <input class="inp" id="edit-lng" value="${escapeHtml(item.config_detect ?? '')}">
         </div>
 
         <div>
-          <label class="stat-name">Image URL</label>
-          <input class="inp" id="edit-img" value="${escapeHtml(item.img || '')}">
+          <label class="stat-name">Status Detect</label>
+          <span class="status-badge ${item.status_detect ? 'status-on' : 'status-off'}">
+            ${escapeHtml(formatBool(item.status_detect))}
+          </span>
         </div>
 
         <div>
-          <label class="stat-name">Latitude</label>
-          <input class="inp" id="edit-lat" value="${escapeHtml(item.lat ?? '')}">
-        </div>
-
-        <div>
-          <label class="stat-name">Longitude</label>
-          <input class="inp" id="edit-lng" value="${escapeHtml(item.lng ?? '')}">
-        </div>
-
-        <div>
-          <label class="stat-name">Description</label>
-          <textarea class="ta" id="edit-desc">${escapeHtml(item.desc || '')}</textarea>
+          <label class="stat-name">Activate Detect</label>
+          <div class="param-item bool-param-item">
+            <div class="bool-switch">
+              <label class="bool-opt">
+                <input type="radio" name="use_detect" value="true" ${item.use_detect ? 'checked' : ''}>
+                <span>ON</span>
+              </label>
+              <label class="bool-opt">
+                <input type="radio" name="use_detect" value="false" ${!item.use_detect ? 'checked' : ''}>
+                <span>OFF</span>
+              </label>
+            </div>
+          </div>
         </div>
 
         <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:6px;">
           <button class="exp-btn" onclick="resetStatsForm()">Reset</button>
           <button class="exp-btn hi" onclick="saveCurrentSetting()">Save</button>
         </div>
+        
       </div>
     </div>
   `;
+}
+
+function formatBool(v){
+  if (v === true) return "on";
+  if (v === false) return "off";
+  if (v === null || v === undefined) return "";
+  return String(v);
 }
 
 function changeStatsEvent(idx) {

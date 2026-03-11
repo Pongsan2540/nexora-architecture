@@ -12,7 +12,11 @@ db = client["ai_login"]
 collection_users = db["users"]
 collection_location = db["location"]
 collection_event = db["event"]
-                                                                               
+
+collection_prompt = db["ai-prompt"]
+
+
+
 API_PREFIX = "/nexora/api"
 
 app = FastAPI(
@@ -218,9 +222,19 @@ class UpdateSettingPayload(BaseModel):
 
 @app.get("/nexora/api/listSetting")
 async def list_setting(id_cam: Optional[str] = Query(default=None)):
+
     if id_cam:
-        return [x for x in mock_settings if x["id_cam"] == id_cam]
-    return mock_settings
+
+        docs = list(collection_prompt.find({"id_cam": id_cam}))
+
+        result = []
+        for d in docs:
+            d["_id"] = str(d["_id"])
+            result.append(d)
+
+        print(result)
+
+    return result
 
 
 @app.put("/nexora/api/updateSetting")
