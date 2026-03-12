@@ -237,7 +237,7 @@
 
 .menu-item{padding:7px 10px;border-radius:8px;font-size:12px;font-weight:600;color:var(--t0);cursor:pointer;transition:all 120ms;display:flex;align-items:center;}
 .menu-item:hover{background:rgba(255,255,255,.06);}
-.menu-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:8px;flex-shrink:0;}
+.menu-dot{width:7px;height:7px;border-radius:50%;margin-right:8px;flex-shrink:0;}
 
 .cam-card-sub{
   font-size:13px;
@@ -613,3 +613,4 @@
 .confirm-btn:active{
   transform:scale(.98);
 }
+

@@ -205,22 +205,7 @@ mock_settings = [
 from typing import Optional
 from pydantic import BaseModel, Field, ConfigDict
 
-class UpdateSettingPayload(BaseModel):
-    id: str = Field(alias="_id")
-    id_cam: str
-    name: str
-    sub: str
-    tag: str
-    level: str
-    hours: str
-    img: str
-    desc: str
-    lat: float
-    lng: float
-
-    model_config = ConfigDict(populate_by_name=True)
-
-@app.get("/nexora/api/listSetting")
+@api.get("/listSetting")
 async def list_setting(id_cam: Optional[str] = Query(default=None)):
 
     if id_cam:
@@ -236,32 +221,72 @@ async def list_setting(id_cam: Optional[str] = Query(default=None)):
 
     return result
 
-
-@app.put("/nexora/api/updateSetting")
+class UpdateSettingPayload(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+ 
+    id: str = Field(alias="_id")
+    id_cam: str
+    model_prompt: str
+    config_prompt: str
+    use_prompt: bool
+    use_sub_prompt: bool
+    model_detect: str
+    config_detect: float
+    use_detect: bool
+ 
+@api.put("/updateSetting")
 async def update_setting(payload: UpdateSettingPayload):
-    for i, item in enumerate(mock_settings):
-        if item["_id"] == payload.id:
-            mock_settings[i] = {
-                "_id": payload.id,
-                "id_cam": payload.id_cam,
-                "name": payload.name,
-                "sub": payload.sub,
-                "tag": payload.tag,
-                "level": payload.level,
-                "hours": payload.hours,
-                "img": payload.img,
-                "desc": payload.desc,
-                "lat": payload.lat,
-                "lng": payload.lng,
-            }
-            return {
-                "ok": True,
-                "updated_id": payload.id,
-                "data": mock_settings[i],
-            }
+    from bson import ObjectId
+    from bson.errors import InvalidId
+ 
+    # แปลง _id เป็น ObjectId (รองรับทั้ง hex string และ string ธรรมดา)
+    try:
+        doc_id = ObjectId(payload.id)
+    except (InvalidId, Exception):
+        doc_id = payload.id  # fallback ถ้าไม่ใช่ ObjectId format
+ 
+    print(payload.use_prompt)
 
-    raise HTTPException(status_code=404, detail="setting not found")
+    update_fields = {
+        "model_prompt":   payload.model_prompt,
+        "config_prompt":  payload.config_prompt,
+        "use_prompt":     payload.use_prompt,
+        "use_sub_prompt": payload.use_sub_prompt,
+        "model_detect":   payload.model_detect,
+        "config_detect":  payload.config_detect,
+        "use_detect":     payload.use_detect,
+    }
+ 
+    if payload.use_prompt == True :
+        update_fields["status_prompt"] = True
+    elif payload.use_prompt == False :
+        update_fields["status_prompt"] = False
 
+    if payload.use_sub_prompt == True :
+        update_fields["status_sub_prompt"] = True
+    elif payload.use_sub_prompt == False :
+        update_fields["status_sub_prompt"] = False
+
+    if payload.use_detect == True :
+        update_fields["status_detect"] = True
+    elif payload.use_detect == False :
+        update_fields["status_detect"] = False
+
+    result = collection_prompt.update_one(
+        {"_id": doc_id, "id_cam": payload.id_cam},
+        {"$set": update_fields},
+    )
+ 
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="setting not found")
+ 
+    pprint(update_fields)
+
+    return {
+        "ok": True,
+        "updated_id": payload.id,
+        "modified": result.modified_count,
+    }
 
 app.include_router(api)
 

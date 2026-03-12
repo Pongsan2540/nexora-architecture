@@ -15,7 +15,6 @@ const EVENT_API_CANDIDATES = [
 const SETTINGS_API_CANDIDATES = [
   (cam) => `${API_BASE}/nexora/api/listSetting?id_cam=${encodeURIComponent(cam.id_cam)}`,
   (cam) => `${API_BASE}/nexora/api/settings?id_cam=${encodeURIComponent(cam.id_cam)}`,
-  (cam) => `${API_BASE}/nexora/api/listEventCam?id_cam=${encodeURIComponent(cam.id_cam)}`
 ];
 
 /* ══════════════════════════════════════════════════════════
@@ -1391,7 +1390,7 @@ function renderStats() {
     p.innerHTML = `
       <div class="stat-card" style="padding:14px;">
         <div class="stat-row" style="margin-bottom:12px;">
-          <span class="stat-name">Detection Settings</span>
+          <span class="stat-name"Monitoring Settings</span>
           <span class="stat-val">${escapeHtml(currentCamera.name_cam)}</span>
         </div>
         <div style="font-size:11px;color:var(--t2);">
@@ -1413,19 +1412,25 @@ function renderStats() {
   p.innerHTML = `
     <div class="stat-card" style="padding:14px;">
       <div class="stat-row" style="margin-bottom:12px;">
-        <span class="stat-name">Detection Settings</span>
+        <span class="stat-name">Monitoring Settings</span>
         <span class="stat-val">${escapeHtml(currentCamera.name_cam)}</span>
       </div>
 
+
       <div class="edit-grid" style="display:grid;grid-template-columns:1fr;gap:10px;">
         <div>
-          <label class="stat-name">Model Prompt</label>
-          <input class="inp" id="edit-name" value="${escapeHtml(item.model_prompt || '')}">
+          <span class="menu-dot" style="background:#A08764"></span> Model Prompt
+          <select class="sel" id="edit-model-prompt">
+            <option value="" ${item.model_prompt == null ? 'selected' : ''}>Please select a model</option>
+            <option value="Model 1" ${item.model_prompt === 'Model 1' ? 'selected' : ''}>Model 1</option>
+            <option value="Model 2" ${item.model_prompt === 'Model 2' ? 'selected' : ''}>Model 2</option>
+            <option value="Model 3" ${item.model_prompt === 'Model 3' ? 'selected' : ''}>Model 3</option>
+          </select>
         </div>
 
         <div>
           <label class="stat-name">Text Prompt</label>
-          <input class="inp" id="edit-sub" value="${escapeHtml(item.config_prompt || '')}">
+          <input class="inp" id="edit-config-prompt" value="${escapeHtml(item.config_prompt ?? '-')}">
         </div>
         
         <div>
@@ -1478,12 +1483,17 @@ function renderStats() {
 
         <div>
           <label class="stat-name">Model Detect</label>
-          <input class="inp" id="edit-lat" value="${escapeHtml(item.model_detect ?? '')}">
+          <select class="sel" id="edit-model-detect">
+            <option value="" ${item.model_detect == null ? 'selected' : ''}>Please select a model</option>
+            <option value="Model 1" ${item.model_detect === 'Model 1' ? 'selected' : ''}>Model 1</option>
+            <option value="Model 2" ${item.model_detect === 'Model 2' ? 'selected' : ''}>Model 2</option>
+            <option value="Model 3" ${item.model_detect === 'Model 3' ? 'selected' : ''}>Model 3</option>
+          </select>
         </div>
 
         <div>
-          <label class="stat-name">Valus Threshold</label>
-          <input class="inp" id="edit-lng" value="${escapeHtml(item.config_detect ?? '')}">
+          <label class="stat-name">Valus Threshold (%)</label>
+          <input class="inp" id="edit-config-detect" value="${escapeHtml(item.config_detect ?? '-')}">
         </div>
 
         <div>
@@ -1522,7 +1532,7 @@ function renderStats() {
 function formatBool(v){
   if (v === true) return "on";
   if (v === false) return "off";
-  if (v === null || v === undefined) return "";
+  if (v === null || v === undefined) return "-";
   return String(v);
 }
 
@@ -1639,18 +1649,22 @@ async function saveCurrentSetting() {
     return;
   }
 
+  const usePromptEl = document.querySelector('input[name="use_prompt"]:checked');
+  const useSubPromptEl = document.querySelector('input[name="use_sub_prompt"]:checked');
+  const useDetectEl = document.querySelector('input[name="use_detect"]:checked');
+
   const payload = {
     _id: original._id,
     id_cam: original.id_cam,
-    name: document.getElementById('edit-name')?.value?.trim() || '',
-    sub: document.getElementById('edit-sub')?.value?.trim() || '',
-    tag: document.getElementById('edit-tag')?.value?.trim() || '',
-    level: document.getElementById('edit-level')?.value?.trim() || '',
-    hours: document.getElementById('edit-hours')?.value?.trim() || '',
-    img: document.getElementById('edit-img')?.value?.trim() || '',
-    desc: document.getElementById('edit-desc')?.value?.trim() || '',
-    lat: parseFloat(document.getElementById('edit-lat')?.value || '0'),
-    lng: parseFloat(document.getElementById('edit-lng')?.value || '0'),
+
+    model_prompt: document.getElementById('edit-model-prompt')?.value || '',
+    config_prompt: document.getElementById('edit-config-prompt')?.value?.trim() || '',
+    use_prompt: usePromptEl ? usePromptEl.value === 'true' : false,
+    use_sub_prompt: useSubPromptEl ? useSubPromptEl.value === 'true' : false,
+
+    model_detect: document.getElementById('edit-model-detect')?.value || '',
+    config_detect: parseFloat(document.getElementById('edit-config-detect')?.value || '0'),
+    use_detect: useDetectEl ? useDetectEl.value === 'true' : false,
   };
 
   try {
@@ -1665,10 +1679,20 @@ async function saveCurrentSetting() {
     const data = await res.json();
     console.log('saveCurrentSetting success:', data);
 
-    currentSettings[currentSettingIndex] = {
-      ...currentSettings[currentSettingIndex],
-      ...payload,
-    };
+    // โหลดค่าปัจจุบันล่าสุดของกล้องนี้ใหม่
+    await loadSettingsByCamera(currentCamera);
+
+    // หา setting ตัวเดิมในข้อมูลใหม่
+    currentSettingIndex = currentSettings.findIndex(
+      item => String(item._id) === String(original._id) ||
+              String(item.id_cam) === String(original.id_cam)
+    );
+
+    if (currentSettingIndex < 0) {
+      currentSettingIndex = 0;
+    }
+
+    console.log('fresh current setting =', getCurrentSetting());
 
     renderStats();
     renderJSON();
@@ -1678,7 +1702,6 @@ async function saveCurrentSetting() {
     alert(`Save failed: ${err.message}`);
   }
 }
-
 function changeStatsSetting(idx) {
   currentSettingIndex = Number(idx) || 0;
   renderStats();
