@@ -84,14 +84,123 @@
       <!-- ADD RULE MENU -->
       <div id="addMenu" onclick="hideAddMenu(event)">
         <div class="add-menu-box" onclick="event.stopPropagation()">
-          <div style="font-size:9px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--t2);padding:4px 10px 7px;">Rule Type</div>
-          <div class="menu-item" onclick="addRule('match')"><span class="menu-dot" style="background:var(--green)"></span>Match — detect a pattern</div>
-          <div class="menu-item" onclick="addRule('block')"><span class="menu-dot" style="background:var(--red)"></span>Block — stop the stream</div>
-          <div class="menu-item" onclick="addRule('flag')"><span class="menu-dot" style="background:var(--amber)"></span>Flag — annotate tokens</div>
-          <div class="menu-item" onclick="addRule('transform')"><span class="menu-dot" style="background:var(--blue)"></span>Transform — rewrite output</div>
-          <div class="menu-item" onclick="addRule('route')"><span class="menu-dot" style="background:var(--purple)"></span>Route — forward to agent</div>
+
+          <div style="font-size:12px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--t2);padding:4px 10px 7px;">
+            ALL Stream
+          </div>
+
+          <div class="edit-grid" style="display:grid;grid-template-columns:1fr;gap:10px;">
+     
+            <div>
+              <div class="menu-item">
+                <span class="menu-dot" style="background:var(--green)"></span>
+                Model Prompt
+              </div>
+
+              <select class="inp" id="edit-name">
+                <option value="">Select Model</option>
+                <option value="model1">Model 1</option>
+                <option value="model2">Model 2</option>
+                <option value="model3">Model 3</option>
+              </select>
+            </div>
+
+            <div>
+              <div class="menu-item">
+                <span class="menu-dot" style="background:var(--green)"></span>
+                Text Prompt
+              </div>
+              <input class="inp" id="edit-sub" value="">
+            </div>
+            <div>
+              <div class="menu-item">
+                <span class="menu-dot" style="background:var(--green)"></span>
+                Activate Prompt
+              </div>
+              <div class="param-item bool-param-item">
+                <div class="bool-switch">
+                  <label class="bool-opt">
+                    <input type="radio" name="use_prompt" value="true" >
+                    <span>ON</span>
+                  </label>
+                  <label class="bool-opt">
+                    <input type="radio" name="use_prompt" value="false" >
+                    <span>OFF</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div class="menu-item">
+                <span class="menu-dot" style="background:var(--green)"></span>
+                Activate Sub Prompt
+              </div>
+              <div class="param-item bool-param-item">
+                <div class="bool-switch">
+                  <label class="bool-opt">
+                    <input type="radio" name="use_sub_prompt" value="true" >
+                    <span>ON</span>
+                  </label>
+                  <label class="bool-opt">
+                    <input type="radio" name="use_sub_prompt" value="false" >
+                    <span>OFF</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+            <hr class="divider">
+            <div>
+              <div class="menu-item">
+                <span class="menu-dot" style="background:var(--green)"></span>
+                Model Detect
+              </div>
+              <select class="inp" id="edit-name">
+                <option value="">Select Model</option>
+                <option value="model1">Model 1</option>
+                <option value="model2">Model 2</option>
+                <option value="model3">Model 3</option>
+              </select>
+            </div>
+            <div>
+              <div class="menu-item">
+                <span class="menu-dot" style="background:var(--green)"></span>
+                Valus Threshold             
+              </div>
+              <input class="inp" id="edit-lng" value="">
+            </div>
+            <div>
+              <div class="menu-item">
+                <span class="menu-dot" style="background:var(--green)"></span>
+                Activate Detect             
+              </div>
+              <div class="param-item bool-param-item">
+                <div class="bool-switch">
+                  <label class="bool-opt">
+                    <input type="radio" name="use_detect" value="true">
+                    <span>ON</span>
+                  </label>
+                  <label class="bool-opt">
+                    <input type="radio" name="use_detect" value="false">
+                    <span>OFF</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+            <!-- ปุ่มยืนยัน -->
+            <button class="confirm-btn" onclick="submitRules()">
+              Confirm
+            </button>
+          </div>
+
+
+
+
+
+
         </div>
       </div>
+
+
 
 
       <!-- <div class="rules-scroll" id="rulesContainer"></div> -->

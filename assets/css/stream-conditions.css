@@ -229,13 +229,11 @@
   background:var(--glass);
   backdrop-filter:blur(24px);
   border:1px solid var(--bd-hi);
-  border-radius:13px;
+  border-radius:8px; /* มนเล็กน้อย */
   padding:7px;
   box-shadow:var(--sh0);
-  min-width:200px;
+  min-width:250px;
 }
-
-
 
 .menu-item{padding:7px 10px;border-radius:8px;font-size:12px;font-weight:600;color:var(--t0);cursor:pointer;transition:all 120ms;display:flex;align-items:center;}
 .menu-item:hover{background:rgba(255,255,255,.06);}
@@ -590,4 +588,28 @@
   color: #fca5a5;
   border-color: rgba(239,68,68,.26);
   background: rgba(239,68,68,.10);
+}
+
+
+.confirm-btn{
+  width:100%;
+  margin-top:8px;
+  padding:8px 10px;
+  border-radius:8px;
+  border:1px solid rgba(34,197,94,.30);
+  background:rgba(34,197,94,.12);
+  color:#86efac;
+  font-size:11px;
+  font-weight:700;
+  cursor:pointer;
+  transition:all .15s;
+}
+
+.confirm-btn:hover{
+  background:rgba(34,197,94,.18);
+  border-color:rgba(34,197,94,.45);
+}
+
+.confirm-btn:active{
+  transform:scale(.98);
 }

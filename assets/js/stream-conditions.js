@@ -1684,6 +1684,38 @@ function changeStatsSetting(idx) {
   renderStats();
 }
 
+
+
+async function submitRules(){
+
+  const payload = {
+    stream_id: currentStream,
+    rules: RULES   // array ที่คุณเก็บจาก addRule()
+  };
+
+  try{
+
+    const res = await fetch("/nexora/api/addRule",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+
+    console.log("API result:",data);
+
+    hideAddMenu();
+
+  }catch(err){
+    console.error("submit error:",err);
+  }
+
+}
+
+
 /* expose for inline onclick in HTML */
 window.selectCam = selectCam;
 window.switchTab = switchTab;
