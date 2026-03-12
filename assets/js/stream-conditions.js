@@ -1,3 +1,103 @@
+/* register.js — Page-specific logic */
+/* Shared utilities: ../js/glassui.js */
+
+const BASE_URL = "http://localhost:8001/nexora/api";
+
+(function(){
+  const veil = document.getElementById('pageVeil');
+  function navigateTo(url){ veil.classList.add('in'); setTimeout(()=>location.href=url,430); }
+  window.navigateTo = navigateTo;
+  veil.classList.add('in');
+  requestAnimationFrame(()=>requestAnimationFrame(()=>veil.classList.remove('in')));
+
+  const root = document.documentElement;
+  let dark = root.getAttribute('data-theme') !== 'light';
+  document.getElementById('themeBtn').addEventListener('click', ()=>{
+    dark=!dark; root.setAttribute('data-theme',dark?'dark':'light');
+  });
+
+  // Grid
+  const canvas=document.getElementById('bgCanvas'), ctx=canvas.getContext('2d');
+  const DPR=Math.min(window.devicePixelRatio||1,2), T0=Date.now(), GS=64;
+  let W,H,GCOLS,GROWS,CELLS;
+  function resize(){
+    W=window.innerWidth;H=window.innerHeight;
+    canvas.width=W*DPR;canvas.height=H*DPR;
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+    GCOLS=Math.ceil(W/GS)+1;GROWS=Math.ceil(H/GS)+1;CELLS=[];
+    for(let r=0;r<GROWS;r++)for(let c=0;c<GCOLS;c++)CELLS.push({row:r,col:c,delay:Math.random()*3000});
+  }
+  resize();window.addEventListener('resize',resize);
+  function gl(){
+    const a=dark?0.045:0.06;ctx.save();
+    ctx.strokeStyle=dark?`rgba(200,196,188,${a})`:`rgba(30,28,22,${a})`;ctx.lineWidth=0.4;
+    for(let x=0;x<=W;x+=GS){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+    for(let y=0;y<=H;y+=GS){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+    ctx.restore();
+  }
+  function gc(){
+    const now=Date.now()-T0;ctx.save();
+    CELLS.forEach(cell=>{
+      const age=now-cell.delay;if(age<0)return;
+      const cyc=(age%4200)/4200;
+      const f=cyc<0.05?cyc/0.05:cyc<0.18?1-(cyc-0.05)/0.13:0;
+      if(f<0.01)return;
+      const x=cell.col*GS,y=cell.row*GS;
+      ctx.fillStyle=dark?`rgba(210,205,195,${f*0.025})`:`rgba(30,28,24,${f*0.02})`;
+      ctx.fillRect(x,y,GS,GS);
+      ctx.fillStyle=dark?`rgba(210,205,195,${f*0.12})`:`rgba(30,28,24,${f*0.12})`;
+      [[x,y],[x+GS,y],[x,y+GS],[x+GS,y+GS]].forEach(([cx,cy])=>{ctx.beginPath();ctx.arc(cx,cy,1.1,0,Math.PI*2);ctx.fill();});
+    });ctx.restore();
+  }
+  (function loop(){ctx.clearRect(0,0,W,H);gl();gc();requestAnimationFrame(loop);})();
+})();
+
+/* ─── DATA ─── */
+const COLORS=['#8a7e6e','#6a7a68','#7a8a6e','#7e6e8a','#6e8a7a','#8a7a6e'];
+
+let users = [];
+async function loadUsers(){
+  try {
+    const res = await fetch(`${BASE_URL}/users`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    users = await res.json();
+    renderTable(users);
+    updateStats();
+  } catch (err) {
+    console.error("Load users failed:", err);
+    const tb = document.getElementById('userTableBody');
+    tb.innerHTML = '<tr class="empty-row"><td colspan="6">Failed to load users</td></tr>';
+  }
+}
+
+let nextId=6, detailUserId=null, pendingPhoto=null;
+
+const ac=i=>COLORS[i%COLORS.length];
+const ini=u=>(u.firstName[0]+u.lastName[0]).toUpperCase();
+
+function avHTML(u,i,cls){
+  return u.photo
+    ? `<div class="${cls}" style="background:#111"><img src="${u.photo}" alt="${u.firstName}"></div>`
+    : `<div class="${cls}" style="background:${ac(i)}">${ini(u)}</div>`;
+}
+
+function badge(s){
+  if(s==='Active')  return '<span class="badge on">Active</span>';
+  if(s==='Pending') return '<span class="badge pend">Pending</span>';
+  return '<span class="badge off">Inactive</span>';
+}
+
+function updateStats(){
+  document.getElementById('statTotal').textContent  = users.length;
+  document.getElementById('statActive').textContent = users.filter(u=>u.status==='Active').length;
+  document.getElementById('statPending').textContent= users.filter(u=>u.status==='Pending').length;
+  document.getElementById('sbPill').textContent     = users.length;
+}
+
+/* ===========================================================================================================================================================================
+
+
 /* =========================================================
    Nexora Register / Stream Conditions
    Full JS (camera + hls + events api + rules ui)
@@ -6,7 +106,9 @@
 /* ══════════════════════════════════════════════════════════
    CONFIG
    ══════════════════════════════════════════════════════════ */
-const API_BASE = 'http://172.16.1.31:8001';
+/* const API_BASE = 'http://172.16.1.31:8001'; */
+const API_BASE = 'http://localhost:8001';
+
 
 const EVENT_API_CANDIDATES = [
   (cam) => `${API_BASE}/nexora/api/listEventCam?id_cam=${encodeURIComponent(cam.id_cam)}`,
@@ -620,13 +722,13 @@ function renderEvents(events = []) {
   if (!feed) return;
 
   if (!currentCamera) {
-    feed.innerHTML = `<div class="det-empty">ยังไม่ได้เลือกกล้อง</div>`;
+    feed.innerHTML = `<div class="stat-name">I didn't choose a camera</div>`;
     setText('tokenCount', '0');
     return;
   }
 
   if (!events.length) {
-    feed.innerHTML = `<div class="det-empty">ไม่พบ event ของกล้อง ${escapeHtml(currentCamera.name_cam)}</div>`;
+    feed.innerHTML = `<div class="stat-name">No camera event was found ${escapeHtml(currentCamera.name_cam)}</div>`;
     setText('tokenCount', '0');
     setText('hitCount', '0');
     return;
@@ -1352,19 +1454,6 @@ async function copyJSON() {
   }
 }
 
-function downloadJSON() {
-  const data = lastJSONData || buildExportData();
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'camera-stream.json';
-  a.click();
-
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-
 function getCurrentSetting() {
   if (!currentSettings.length) return null;
   if (currentSettingIndex < 0 || currentSettingIndex >= currentSettings.length) {
@@ -1390,7 +1479,7 @@ function renderStats() {
     p.innerHTML = `
       <div class="stat-card" style="padding:14px;">
         <div class="stat-row" style="margin-bottom:12px;">
-          <span class="stat-name"Monitoring Settings</span>
+          <span class="stat-name">Monitoring Settings</span>
           <span class="stat-val">${escapeHtml(currentCamera.name_cam)}</span>
         </div>
         <div style="font-size:11px;color:var(--t2);">
@@ -1419,7 +1508,14 @@ function renderStats() {
 
       <div class="edit-grid" style="display:grid;grid-template-columns:1fr;gap:10px;">
         <div>
-          <span class="menu-dot" style="background:#A08764"></span> Model Prompt
+          <label class="stat-name">
+            <span class="tri-down">
+              <svg viewBox="0 0 10 6" width="9" height="6">
+                <path d="M1 1 L5 5 L9 1" stroke="#8a7e6e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+              </svg>
+            </span>
+            Model Prompt
+          </label>
           <select class="sel" id="edit-model-prompt">
             <option value="" ${item.model_prompt == null ? 'selected' : ''}>Please select a model</option>
             <option value="Model 1" ${item.model_prompt === 'Model 1' ? 'selected' : ''}>Model 1</option>
@@ -1429,26 +1525,54 @@ function renderStats() {
         </div>
 
         <div>
-          <label class="stat-name">Text Prompt</label>
-          <input class="inp" id="edit-config-prompt" value="${escapeHtml(item.config_prompt ?? '-')}">
+          <label class="stat-name">
+            <span class="tri-down">
+              <svg viewBox="0 0 10 6" width="9" height="6">
+                <path d="M1 1 L5 5 L9 1" stroke="#8a7e6e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+              </svg>
+            </span>
+            Text Prompt
+          </label>
+          <input class="inp" id="edit-config-prompt" value="${escapeHtml(item.config_prompt ?? '')}" placeholder="Ex : The man is refueling his car.">
         </div>
         
         <div>
-          <label class="stat-name">Status Prompt</label>
+          <label class="stat-name">
+            <span class="tri-down">
+              <svg viewBox="0 0 10 6" width="9" height="6">
+                <path d="M1 1 L5 5 L9 1" stroke="#8a7e6e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+              </svg>
+            </span>
+            Status Prompt
+          </label>
           <span class="status-badge ${item.status_prompt ? 'status-on' : 'status-off'}">
             ${escapeHtml(formatBool(item.status_prompt))}
           </span>
         </div>
 
         <div>
-          <label class="stat-name">Status Sub Prompt</label>
+          <label class="stat-name">
+            <span class="tri-down">
+              <svg viewBox="0 0 10 6" width="9" height="6">
+                <path d="M1 1 L5 5 L9 1" stroke="#8a7e6e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+              </svg>
+            </span>
+            Status Sub Prompt
+          </label>
           <span class="status-badge ${item.status_sub_prompt ? 'status-on' : 'status-off'}">
             ${escapeHtml(formatBool(item.status_sub_prompt))}
           </span>
         </div>
 
         <div>
-          <label class="stat-name">Activate Prompt</label>
+          <label class="stat-name">
+            <span class="tri-down">
+              <svg viewBox="0 0 10 6" width="9" height="6">
+                <path d="M1 1 L5 5 L9 1" stroke="#8a7e6e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+              </svg>
+            </span>
+            Activate Prompt
+          </label>
           <div class="param-item bool-param-item">
             <div class="bool-switch">
               <label class="bool-opt">
@@ -1464,7 +1588,14 @@ function renderStats() {
         </div>
 
         <div>
-          <label class="stat-name">Activate Sub Prompt</label>
+          <label class="stat-name">
+            <span class="tri-down">
+              <svg viewBox="0 0 10 6" width="9" height="6">
+                <path d="M1 1 L5 5 L9 1" stroke="#8a7e6e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+              </svg>
+            </span>
+            Activate Sub Prompt
+          </label>
           <div class="param-item bool-param-item">
             <div class="bool-switch">
               <label class="bool-opt">
@@ -1482,7 +1613,14 @@ function renderStats() {
         <hr class="divider">
 
         <div>
-          <label class="stat-name">Model Detect</label>
+          <label class="stat-name">
+            <span class="tri-down">
+              <svg viewBox="0 0 10 6" width="9" height="6">
+                <path d="M1 1 L5 5 L9 1" stroke="#8a7e6e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+              </svg>
+            </span>
+            Model Detect
+          </label>
           <select class="sel" id="edit-model-detect">
             <option value="" ${item.model_detect == null ? 'selected' : ''}>Please select a model</option>
             <option value="Model 1" ${item.model_detect === 'Model 1' ? 'selected' : ''}>Model 1</option>
@@ -1492,19 +1630,40 @@ function renderStats() {
         </div>
 
         <div>
-          <label class="stat-name">Valus Threshold (%)</label>
-          <input class="inp" id="edit-config-detect" value="${escapeHtml(item.config_detect ?? '-')}">
+          <label class="stat-name">
+            <span class="tri-down">
+              <svg viewBox="0 0 10 6" width="9" height="6">
+                <path d="M1 1 L5 5 L9 1" stroke="#8a7e6e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+              </svg>
+            </span>
+            Valus Threshold (%)
+          </label>
+          <input class="inp" id="edit-config-detect" value="${escapeHtml(item.config_detect ?? '')}" placeholder="Ex : 70">
         </div>
 
         <div>
-          <label class="stat-name">Status Detect</label>
+          <label class="stat-name">
+            <span class="tri-down">
+              <svg viewBox="0 0 10 6" width="9" height="6">
+                <path d="M1 1 L5 5 L9 1" stroke="#8a7e6e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+              </svg>
+            </span>
+            Status Detect
+          </label>
           <span class="status-badge ${item.status_detect ? 'status-on' : 'status-off'}">
             ${escapeHtml(formatBool(item.status_detect))}
           </span>
         </div>
 
         <div>
-          <label class="stat-name">Activate Detect</label>
+          <label class="stat-name">
+            <span class="tri-down">
+              <svg viewBox="0 0 10 6" width="9" height="6">
+                <path d="M1 1 L5 5 L9 1" stroke="#8a7e6e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+              </svg>
+            </span>
+            Activate Detect
+          </label>
           <div class="param-item bool-param-item">
             <div class="bool-switch">
               <label class="bool-opt">
@@ -1708,42 +1867,109 @@ function changeStatsSetting(idx) {
 }
 
 
+function getRadioBool(name) {
+  const checked = document.querySelector(`input[name="${name}"]:checked`);
+  if (!checked) return null;
+  return checked.value === "true";
+}
 
-async function submitRules(){
+async function submitRules() {
+  try {
+    const modelPrompt = document.getElementById("all-model-prompt")?.value || "";
+    const textPrompt = document.getElementById("all-text-prompt")?.value.trim() || "";
+    const usePrompt = getRadioBool("all-use-prompt");
+    const useSubPrompt = getRadioBool("all-use-sub_prompt");
+    const modelDetect = document.getElementById("all-model-detect")?.value || "";
+    const valueThresholdRaw = document.getElementById("all-value-threshold")?.value.trim() || "";
+    const useDetect = getRadioBool("all-use-detect");
 
-  const payload = {
-    stream_id: currentStream,
-    rules: RULES   // array ที่คุณเก็บจาก addRule()
-  };
+    if (!modelPrompt) {
+      alert("Please select Model Prompt");
+      return;
+    }
 
-  try{
+    if (!textPrompt) {
+      alert("Please fill in Text Prompt");
+      return;
+    }
 
-    const res = await fetch("/nexora/api/addRule",{
-      method:"POST",
-      headers:{
-        "Content-Type":"application/json"
+    if (usePrompt === null) {
+      alert("Please select Activate Prompt");
+      return;
+    }
+
+    if (useSubPrompt === null) {
+      alert("Please select Activate Sub Prompt");
+      return;
+    }
+
+    if (!modelDetect) {
+      alert("Please select Model Detect");
+      return;
+    }
+
+    if (!valueThresholdRaw) {
+      alert("Please fill in Value Threshold");
+      return;
+    }
+
+    if (useDetect === null) {
+      alert("Please select Activate Detect");
+      return;
+    }
+
+    const valueThreshold = Number(valueThresholdRaw);
+    if (Number.isNaN(valueThreshold)) {
+      alert("Value Threshold It must be a number");
+      return;
+    }
+
+    const rule = {
+      model_prompt: modelPrompt,
+      config_prompt: textPrompt,
+      use_prompt: usePrompt,
+      use_sub_prompt: useSubPrompt,
+      model_detect: modelDetect,
+      config_detect: valueThreshold,
+      use_detect: useDetect
+    };
+
+    const payload = {
+      rules: [rule]
+    };
+
+    console.log("Payload ที่จะส่งไป API:", payload);
+
+    const res = await fetch(`${API_BASE}/nexora/api/addRule`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
       },
       body: JSON.stringify(payload)
     });
 
     const data = await res.json();
 
-    console.log("API result:",data);
+    console.log("API result:", data);
 
+    if (!res.ok) {
+      console.error("submit failed:", data);
+      alert(`ส่งไม่สำเร็จ: ${JSON.stringify(data)}`);
+      return;
+    }
+
+    alert("บันทึกสำเร็จ");
     hideAddMenu();
-
-  }catch(err){
-    console.error("submit error:",err);
+  } catch (err) {
+    console.error("submit error:", err);
+    alert("เกิดข้อผิดพลาดตอนส่งข้อมูล");
   }
-
 }
-
 
 /* expose for inline onclick in HTML */
 window.selectCam = selectCam;
 window.switchTab = switchTab;
 window.copyJSON = copyJSON;
-window.downloadJSON = downloadJSON;
 window.clearFeed = clearFeed;
 window.showAddMenu = showAddMenu;
 window.hideAddMenu = hideAddMenu;

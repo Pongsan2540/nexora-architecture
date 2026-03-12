@@ -6,15 +6,15 @@ from pymongo import MongoClient
 from pprint import pprint
 from pydantic import BaseModel
 
-# client = MongoClient("mongodb://localhost:27017")
-client = MongoClient("mongodb://root:example@localhost:27017/?authSource=admin")
+client = MongoClient("mongodb://localhost:27017")
+#client = MongoClient("mongodb://root:example@localhost:27017/?authSource=admin")
 db = client["ai_login"]
 collection_users = db["users"]
 collection_location = db["location"]
 collection_event = db["event"]
 
 collection_prompt = db["ai-prompt"]
-
+collection_prompt_all = db["ai-prompt-all"]
 
 
 API_PREFIX = "/nexora/api"
@@ -287,6 +287,38 @@ async def update_setting(payload: UpdateSettingPayload):
         "updated_id": payload.id,
         "modified": result.modified_count,
     }
+
+
+from typing import List, Dict, Any
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel, Field
+from pprint import pprint
+
+class RuleRequest(BaseModel):
+    rules: List[Dict[str, Any]] = Field(..., min_length=1)
+
+@api.post("/addRule")
+async def add_rule(data: RuleRequest):
+
+    if not data.rules:
+        raise HTTPException(status_code=400, detail="rules is required")
+
+    doc = {
+        "rules": data.rules
+    }
+
+    print("rules:")
+    pprint(doc["rules"])
+
+    result = collection_prompt_all.insert_one(doc)
+
+    return {
+        "status": "ok",
+        "message": "rules saved",
+        "inserted_id": str(result.inserted_id),
+        "count": len(doc["rules"])
+    }
+
 
 app.include_router(api)
 

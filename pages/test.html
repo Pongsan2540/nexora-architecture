@@ -10,13 +10,12 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.7/hls.min.js"></script>
 
-
   <!-- Glass UI — shared styles (load in this order) -->
   <link rel="stylesheet" href="../assets/css/tokens.css">
   <link rel="stylesheet" href="../assets/css/components.css">
 
   <!-- Page-specific styles -->
-  <link rel="stylesheet" href="../assets/css/register.css">
+  <!-- <link rel="stylesheet" href="../assets/css/register.css"> -->
   <link rel="stylesheet" href="../assets/css/stream-conditions.css">
 
 </head>
@@ -71,8 +70,6 @@
   </header>
 
   <div class="content">
-
-
     <!-- COL 1: RULES -->
     <div class="col-rules">
       <div class="col-hdr">
@@ -80,69 +77,79 @@
         <div class="lp-status">Stream Channel</div>
       </div>
       <div class="cam-cards" id="camCards"></div>
-
       <!-- ADD RULE MENU -->
       <div id="addMenu" onclick="hideAddMenu(event)">
         <div class="add-menu-box" onclick="event.stopPropagation()">
-
-          <div style="font-size:12px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--t2);padding:4px 10px 7px;">
-            ALL Stream
+          <div class="stat-row">
+            <span class="stat-name">Monitoring Set All Stream</span>
           </div>
-
           <div class="edit-grid" style="display:grid;grid-template-columns:1fr;gap:10px;">
-     
             <div>
-              <div class="menu-item">
-                <span class="menu-dot" style="background:var(--green)"></span>
+              <label class="stat-name">
+                <span class="tri-down">
+                  <svg viewBox="0 0 10 6" width="9" height="6">
+                    <path d="M1 1 L5 5 L9 1" stroke="#8a7e6e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                  </svg>
+                </span>
                 Model Prompt
-              </div>
-
-              <select class="inp" id="edit-name">
+              </label>
+              <select class="inp" id="all-model-prompt">
                 <option value="">Select Model</option>
                 <option value="model1">Model 1</option>
                 <option value="model2">Model 2</option>
                 <option value="model3">Model 3</option>
               </select>
             </div>
-
             <div>
-              <div class="menu-item">
-                <span class="menu-dot" style="background:var(--green)"></span>
+              <label class="stat-name">
+                <span class="tri-down">
+                  <svg viewBox="0 0 10 6" width="9" height="6">
+                    <path d="M1 1 L5 5 L9 1" stroke="#8a7e6e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                  </svg>
+                </span>
                 Text Prompt
-              </div>
-              <input class="inp" id="edit-sub" value="">
+              </label>
+              <input class="inp" id="all-text-prompt" required placeholder="Ex : The man is refueling his car.">
             </div>
             <div>
-              <div class="menu-item">
-                <span class="menu-dot" style="background:var(--green)"></span>
+              <label class="stat-name">
+                <span class="tri-down">
+                  <svg viewBox="0 0 10 6" width="9" height="6">
+                    <path d="M1 1 L5 5 L9 1" stroke="#8a7e6e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                  </svg>
+                </span>
                 Activate Prompt
-              </div>
+              </label>
               <div class="param-item bool-param-item">
                 <div class="bool-switch">
                   <label class="bool-opt">
-                    <input type="radio" name="use_prompt" value="true" >
+                    <input type="radio" name="all-use-prompt" value="true" required>
                     <span>ON</span>
                   </label>
                   <label class="bool-opt">
-                    <input type="radio" name="use_prompt" value="false" >
+                    <input type="radio" name="all-use-prompt" value="false">
                     <span>OFF</span>
                   </label>
                 </div>
               </div>
             </div>
             <div>
-              <div class="menu-item">
-                <span class="menu-dot" style="background:var(--green)"></span>
+              <label class="stat-name">
+                <span class="tri-down">
+                  <svg viewBox="0 0 10 6" width="9" height="6">
+                    <path d="M1 1 L5 5 L9 1" stroke="#8a7e6e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                  </svg>
+                </span>
                 Activate Sub Prompt
-              </div>
+              </label>
               <div class="param-item bool-param-item">
                 <div class="bool-switch">
                   <label class="bool-opt">
-                    <input type="radio" name="use_sub_prompt" value="true" >
+                    <input type="radio" name="all-use-sub_prompt" value="true" required>
                     <span>ON</span>
                   </label>
                   <label class="bool-opt">
-                    <input type="radio" name="use_sub_prompt" value="false" >
+                    <input type="radio" name="all-use-sub_prompt" value="false">
                     <span>OFF</span>
                   </label>
                 </div>
@@ -150,11 +157,15 @@
             </div>
             <hr class="divider">
             <div>
-              <div class="menu-item">
-                <span class="menu-dot" style="background:var(--green)"></span>
+              <label class="stat-name">
+                <span class="tri-down">
+                  <svg viewBox="0 0 10 6" width="9" height="6">
+                    <path d="M1 1 L5 5 L9 1" stroke="#8a7e6e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                  </svg>
+                </span>
                 Model Detect
-              </div>
-              <select class="inp" id="edit-name">
+              </label>
+              <select class="inp" id="all-model-detect">
                 <option value="">Select Model</option>
                 <option value="model1">Model 1</option>
                 <option value="model2">Model 2</option>
@@ -162,53 +173,51 @@
               </select>
             </div>
             <div>
-              <div class="menu-item">
-                <span class="menu-dot" style="background:var(--green)"></span>
-                Valus Threshold             
-              </div>
-              <input class="inp" id="edit-lng" value="">
+              <label class="stat-name">
+                <span class="tri-down">
+                  <svg viewBox="0 0 10 6" width="9" height="6">
+                    <path d="M1 1 L5 5 L9 1" stroke="#8a7e6e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                  </svg>
+                </span>
+                Value Threshold
+              </label>
+              <input class="inp" id="all-value-threshold" type="text" inputmode="decimal" value="" placeholder="Ex : 70">
             </div>
             <div>
-              <div class="menu-item">
-                <span class="menu-dot" style="background:var(--green)"></span>
-                Activate Detect             
-              </div>
+              <label class="stat-name">
+                <span class="tri-down">
+                  <svg viewBox="0 0 10 6" width="9" height="6">
+                    <path d="M1 1 L5 5 L9 1" stroke="#8a7e6e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                  </svg>
+                </span>
+                Activate Detect
+              </label>
               <div class="param-item bool-param-item">
                 <div class="bool-switch">
                   <label class="bool-opt">
-                    <input type="radio" name="use_detect" value="true">
+                    <input type="radio" name="all-use-detect" value="true" required>
                     <span>ON</span>
                   </label>
                   <label class="bool-opt">
-                    <input type="radio" name="use_detect" value="false">
+                    <input type="radio" name="all-use-detect" value="false">
                     <span>OFF</span>
                   </label>
                 </div>
               </div>
             </div>
-            <!-- ปุ่มยืนยัน -->
-            <button class="confirm-btn" onclick="submitRules()">
+            <button type="button" class="confirm-btn" onclick="submitRules()">
               Confirm
             </button>
           </div>
-
-
-
-
-
-
         </div>
       </div>
-
-
-
-
       <!-- <div class="rules-scroll" id="rulesContainer"></div> -->
       <div class="add-rule-bar">
-        <button class="add-btn" onclick="showAddMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Rule</button>
+        <button class="add-btn" onclick="showAddMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Setting Monitoring All
+        </button>
       </div>
     </div>
-
     <!-- COL 2: CAMERAS + VIDEO -->
     <div class="col-video">
       <!-- camera card list -->
@@ -218,7 +227,6 @@
           <div class="lp-status-2" style="font-size:9px;padding:2px 7px;">3 online</div>
         </div>
       </div>
-
       <!-- video player -->
       <div class="vid-wrap">
         <video id="videoEl" autoplay muted playsinline controls></video>
@@ -235,7 +243,6 @@
           <div class="vid-placeholder-sub">คลิกที่ card กล้องเพื่อเริ่มดู stream</div>
         </div>
       </div>
-
       <div class="vid-status">
         <div class="vs-chip"><div class="vs-dot" style="background:var(--green);animation:pulse 2s infinite;"></div>Tokens <span id="tokenCount">0</span></div>
         <div class="vs-chip">Hits <span id="hitCount" style="color:var(--green)">0</span></div>
@@ -243,22 +250,19 @@
         <div class="vs-chip" id="hlsState" style="color:var(--t2)">idle</div>
       </div>
     </div>
-
-<!-- COL 3: RESULTS / JSON / STATS -->
+    <!-- COL 3: RESULTS / JSON / STATS -->
     <div class="col-config">
       <div class="rp-tabs">
         <div class="rp-tab on" data-tab="results" onclick="switchTab('results')">&#9654; Event</div>
         <div class="rp-tab" data-tab="stats"   onclick="switchTab('stats')">&#8599; Setting</div>
         <div class="rp-tab" data-tab="json"    onclick="switchTab('json')">{ } Logs</div>
       </div>
-
       <!-- RESULTS -->
       <div class="rp-panel on" id="tab-results">
         <div class="stream-feed-wrap">
           <div class="stream-feed" id="streamFeed"></div>
         </div>
       </div>
-
       <!-- JSON -->
       <div class="rp-panel" id="tab-json">
         <div class="json-wrap"><div class="json-box" id="jsonBox"></div></div>
@@ -267,19 +271,11 @@
           <button class="exp-btn" onclick="downloadJSON()">Download .json</button>
         </div>
       </div>
-
       <!-- STATS -->
       <div class="rp-panel" id="tab-stats">
         <div class="stats-scroll" id="statsPanel"></div>
       </div>
     </div>
-
-
-
-
-
-    
-
   </div>
 </div>
 </div><!-- /shell -->
@@ -288,7 +284,7 @@
 <script src="../assets/js/glassui.js"></script>
 
 <!-- Page-specific logic -->
-<script src="../assets/js/register.js"></script>
+<!-- <script src="../assets/js/register.js"></script> -->
 <script src="../assets/js/stream-conditions.js"></script>
 
 
