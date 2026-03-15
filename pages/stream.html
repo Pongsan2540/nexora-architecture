@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Nexora Stream</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.7/hls.min.js"></script>
+
+  <!-- Glass UI — shared styles (load in this order) -->
+  <link rel="stylesheet" href="../assets/css/tokens.css">
+  <link rel="stylesheet" href="../assets/css/components.css">
+
+  <!-- Page-specific styles -->
+  <!-- <link rel="stylesheet" href="../assets/css/register.css"> -->
+  <link rel="stylesheet" href="../assets/css/stream-conditions.css">
+
+</head>
+<body>
+
+<div id="pageVeil"></div>
+<div class="noise"></div>
+<canvas id="bgCanvas" style="position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:2;"></canvas>
+<input type="file" id="fileModal"  accept="image/*" style="display:none" onchange="onFileModal(event)"/>
+<input type="file" id="fileDetail" accept="image/*" style="display:none" onchange="onFileDetail(event)"/>
+
+<div class="shell">
+
+<!-- SIDEBAR -->
+<div id="sidebar-root"></div>
+
+<!-- MAIN -->
+<div class="main">
+  <header class="topbar">
+    <div class="topbar-title">Stream <span>Management</span></div>
+    <button class="theme-btn" id="themeBtn">
+      <svg class="i-moon" width="15" height="15" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="0.9"><path d="M11.8 8.6A5.2 5.2 0 014.4 1.2a5.2 5.2 0 100 10.4 5.2 5.2 0 007.4-3z"/></svg>
+      <svg class="i-sun" width="15" height="15" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="0.9"><circle cx="6.5" cy="6.5" r="2.4"/><line x1="6.5" y1="1" x2="6.5" y2="2.3"/><line x1="6.5" y1="10.7" x2="6.5" y2="12"/><line x1="1" y1="6.5" x2="2.3" y2="6.5"/><line x1="10.7" y1="6.5" x2="12" y2="6.5"/><line x1="2.7" y1="2.7" x2="3.6" y2="3.6"/><line x1="9.4" y1="9.4" x2="10.3" y2="10.3"/><line x1="10.3" y1="2.7" x2="9.4" y2="3.6"/><line x1="3.6" y1="9.4" x2="2.7" y2="10.3"/></svg>
+    </button>
+  </header>
+
+  <div class="content">
+    <!-- COL 1: RULES -->
+    <div class="col-rules">
+      <div class="col-hdr">
+        <div class="col-hdr-title">List Stream</div>
+        <div class="lp-status">Stream Channel</div>
+      </div>
+      <div class="cam-cards" id="camCards"></div>
+      <!-- ADD RULE MENU -->
+      <div id="addMenu" onclick="hideAddMenu(event)">
+        <div class="add-menu-box" onclick="event.stopPropagation()">
+          <div class="stat-row">
+            <span class="stat-name">Monitoring Set All Stream</span>
+          </div>
+          <div class="edit-grid" style="display:grid;grid-template-columns:1fr;gap:10px;">
+            <div>
+              <label class="stat-name">
+                <span class="tri-down">
+                  <svg viewBox="0 0 10 6" width="9" height="6">
+                    <path d="M1 1 L5 5 L9 1" stroke="#8a7e6e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                  </svg>
+                </span>
+                Model Prompt
+              </label>
+              <select class="inp" id="all-model-prompt">
+                <option value="">Select Model</option>
+                <option value="model1">Model 1</option>
+                <option value="model2">Model 2</option>
+                <option value="model3">Model 3</option>
+              </select>
+            </div>
+            <div>
+              <label class="stat-name">
+                <span class="tri-down">
+                  <svg viewBox="0 0 10 6" width="9" height="6">
+                    <path d="M1 1 L5 5 L9 1" stroke="#8a7e6e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                  </svg>
+                </span>
+                Text Prompt
+              </label>
+              <input class="inp" id="all-text-prompt" required placeholder="Ex : The man is refueling his car.">
+            </div>
+            <div>
+              <label class="stat-name">
+                <span class="tri-down">
+                  <svg viewBox="0 0 10 6" width="9" height="6">
+                    <path d="M1 1 L5 5 L9 1" stroke="#8a7e6e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                  </svg>
+                </span>
+                Activate Prompt
+              </label>
+              <div class="param-item bool-param-item">
+                <div class="bool-switch">
+                  <label class="bool-opt">
+                    <input type="radio" name="all-use-prompt" value="true" required>
+                    <span>ON</span>
+                  </label>
+                  <label class="bool-opt">
+                    <input type="radio" name="all-use-prompt" value="false">
+                    <span>OFF</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div>
+              <label class="stat-name">
+                <span class="tri-down">
+                  <svg viewBox="0 0 10 6" width="9" height="6">
+                    <path d="M1 1 L5 5 L9 1" stroke="#8a7e6e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                  </svg>
+                </span>
+                Activate Sub Prompt
+              </label>
+              <div class="param-item bool-param-item">
+                <div class="bool-switch">
+                  <label class="bool-opt">
+                    <input type="radio" name="all-use-sub_prompt" value="true" required>
+                    <span>ON</span>
+                  </label>
+                  <label class="bool-opt">
+                    <input type="radio" name="all-use-sub_prompt" value="false">
+                    <span>OFF</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+            <hr class="divider">
+            <div>
+              <label class="stat-name">
+                <span class="tri-down">
+                  <svg viewBox="0 0 10 6" width="9" height="6">
+                    <path d="M1 1 L5 5 L9 1" stroke="#8a7e6e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                  </svg>
+                </span>
+                Model Detect
+              </label>
+              <select class="inp" id="all-model-detect">
+                <option value="">Select Model</option>
+                <option value="model1">Model 1</option>
+                <option value="model2">Model 2</option>
+                <option value="model3">Model 3</option>
+              </select>
+            </div>
+            <div>
+              <label class="stat-name">
+                <span class="tri-down">
+                  <svg viewBox="0 0 10 6" width="9" height="6">
+                    <path d="M1 1 L5 5 L9 1" stroke="#8a7e6e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                  </svg>
+                </span>
+                Value Threshold
+              </label>
+              <input class="inp" id="all-value-threshold" type="text" inputmode="decimal" value="" placeholder="Ex : 70">
+            </div>
+            <div>
+              <label class="stat-name">
+                <span class="tri-down">
+                  <svg viewBox="0 0 10 6" width="9" height="6">
+                    <path d="M1 1 L5 5 L9 1" stroke="#8a7e6e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                  </svg>
+                </span>
+                Activate Detect
+              </label>
+              <div class="param-item bool-param-item">
+                <div class="bool-switch">
+                  <label class="bool-opt">
+                    <input type="radio" name="all-use-detect" value="true" required>
+                    <span>ON</span>
+                  </label>
+                  <label class="bool-opt">
+                    <input type="radio" name="all-use-detect" value="false">
+                    <span>OFF</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+            <button type="button" class="confirm-btn" onclick="submitRules()">
+              Confirm
+            </button>
+          </div>
+        </div>
+      </div>
+      <!-- <div class="rules-scroll" id="rulesContainer"></div> -->
+      <div class="add-rule-bar">
+        <button class="add-btn" onclick="showAddMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Setting Monitoring All
+        </button>
+      </div>
+    </div>
+    <!-- COL 2: CAMERAS + VIDEO -->
+    <div class="col-video">
+      <!-- camera card list -->
+      <div class="cam-list-wrap">
+        <div class="cam-list-hdr">
+           <!--  <div class="cam-list-title">Cameras</div> -->
+          <div class="lp-status-2" style="font-size:9px;padding:2px 7px;">3 online</div>
+        </div>
+      </div>
+      <!-- video player -->
+      <!--
+      <div class="vid-wrap">
+        <video id="videoEl" autoplay muted playsinline controls></video>
+        <div class="vid-hud">
+          <div class="hud-chip">
+            <div class="hud-live" id="liveIndicator" style="background:var(--red);"></div>
+            <span id="camNameHud">เลือกกล้อง</span>
+          </div>
+          <div class="hud-chip" id="hudClock" style="display:none;"></div>
+        </div>
+        <div class="vid-placeholder" id="vidPlaceholder">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="23,7 16,12 23,17"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+          <div class="vid-placeholder-title">เลือกกล้องด้านบน</div>
+          <div class="vid-placeholder-sub">คลิกที่ card กล้องเพื่อเริ่มดู stream</div>
+        </div>
+      </div>
+      <div class="vid-status">
+        <div class="vs-chip"><div class="vs-dot" style="background:var(--green);animation:pulse 2s infinite;"></div>Tokens <span id="tokenCount">0</span></div>
+        <div class="vs-chip">Hits <span id="hitCount" style="color:var(--green)">0</span></div>
+        <div style="flex:1"></div>
+        <div class="vs-chip" id="hlsState" style="color:var(--t2)">idle</div>
+      </div>
+      -->
+      <!-- Tab สลับ stream -->
+      <div class="rp-tabs" style="border-bottom:1px solid var(--bd);flex-shrink:0;">
+        <div class="rp-tab on" id="stab-main" onclick="switchStream(0)">
+          <svg class="tab-ico-ai" viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="3" y="5" width="18" height="12" rx="2"/>
+            <path d="M8 19h8"/>
+            <path d="M12 17v2"/>
+          </svg>
+          View
+        </div>
+        <div class="rp-tab" id="stab-sub" onclick="switchStream(1)">
+          <svg class="tab-ico-ai" viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="7" y="7" width="10" height="10" rx="2"/>
+            <path d="M10 12s.9-1.5 2-1.5 2 1.5 2 1.5-.9 1.5-2 1.5-2-1.5-2-1.5Z"/>
+            <circle cx="12" cy="12" r=".6" fill="currentColor" stroke="none"/>
+            <path d="M9 3v2M12 3v2M15 3v2M9 19v2M12 19v2M15 19v2M3 9h2M3 12h2M3 15h2M19 9h2M19 12h2M19 15h2"/>
+          </svg>
+          Vision
+        </div>
+      </div>
+      <div class="vid-wrap">
+        <video id="videoEl" autoplay muted playsinline controls></video>
+        <div class="vid-hud">
+          <div class="hud-chip">
+            <div class="hud-live" id="liveIndicator" style="background:var(--red);"></div>
+            <span id="camNameHud">เลือกกล้อง</span>
+          </div>
+          <div class="hud-chip" id="hudClock" style="display:none;"></div>
+        </div>
+        <div class="vid-placeholder" id="vidPlaceholder">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="23,7 16,12 23,17"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+          <div class="vid-placeholder-title">เลือกกล้องด้านบน</div>
+          <div class="vid-placeholder-sub">คลิกที่ card กล้องเพื่อเริ่มดู stream</div>
+        </div>
+      </div>
+      <div class="vid-status">
+        <div class="vs-chip"><div class="vs-dot" style="background:var(--green);animation:pulse 2s infinite;"></div>Tokens <span id="tokenCount">0</span></div>
+        <div class="vs-chip">Hits <span id="hitCount" style="color:var(--green)">0</span></div>
+        <div style="flex:1"></div>
+        <div class="vs-chip" id="hlsState" style="color:var(--t2)">idle</div>
+      </div>
+    </div>
+    <!-- COL 3: RESULTS / JSON / STATS -->
+    <div class="col-config">
+      <div class="rp-tabs">
+        <div class="rp-tab on" data-tab="results" onclick="switchTab('results')">&#9654; Event</div>
+        <div class="rp-tab" data-tab="stats"   onclick="switchTab('stats')">&#8599; Setting</div>
+        <div class="rp-tab" data-tab="json"    onclick="switchTab('json')">{ } Logs</div>
+      </div>
+      <!-- RESULTS -->
+      <div class="rp-panel on" id="tab-results">
+        <div class="stream-feed-wrap">
+          <div class="stream-feed" id="streamFeed"></div>
+        </div>
+      </div>
+      <!-- JSON -->
+      <div class="rp-panel" id="tab-json">
+        <div class="json-wrap"><div class="json-box" id="jsonBox"></div></div>
+        <div class="rp-export">
+          <button class="exp-btn hi" onclick="copyJSON()">Copy JSON</button>
+          <button class="exp-btn" onclick="downloadJSON()">Download .json</button>
+        </div>
+      </div>
+      <!-- STATS -->
+      <div class="rp-panel" id="tab-stats">
+        <div class="stats-scroll" id="statsPanel"></div>
+      </div>
+    </div>
+  </div>
+</div>
+</div><!-- /shell -->
+
+<!-- Glass UI — shared utilities -->
+<script src="../assets/js/glassui.js"></script>
+
+<!-- Page-specific logic -->
+<!-- <script src="../assets/js/register.js"></script> -->
+<script src="../assets/js/stream-conditions.js"></script>
+<script src="../assets/js/sidebar-loader.js"></script>
+</body>
+</html>

@@ -1691,6 +1691,70 @@ html,body{height:100%;background:var(--bg);color:var(--t0);font-family:'Inter',s
   align-items: center;
 }
 
+.col-hdr-add {
+  padding: 13px 10px 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.col-hdr-upload {
+  padding: 1px 10px 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.add-btn-upload{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+
+  height:32px;   /* คุมความสูงปุ่ม */
+
+  padding: 11px;
+
+  border-radius:8px;
+  font-size:11px;
+  font-weight:700;
+
+  border:1px solid var(--bd);
+  background:var(--card);
+  color:var(--t1);
+
+  width:100%;
+}
+
+.video-list{
+  margin-top:12px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+.video-item{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:8px 10px;
+  border:1px solid #e0e0e0;
+  border-radius:8px;
+  background:#fafafa;
+  font-size:13px;
+}
+
+.video-name{
+  font-weight:600;
+}
+
+.video-size{
+  opacity:0.6;
+  font-size:12px;
+}
+
 #edit-config-prompt::placeholder,
 #edit-config-detect::placeholder,
 #all-value-threshold::placeholder,
@@ -1698,21 +1762,4 @@ html,body{height:100%;background:var(--bg);color:var(--t0);font-family:'Inter',s
   opacity: 0.4;
 }
 
-.rp-tab{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:8px;
-  font-weight:600;
-  letter-spacing:.04em;
-}
 
-.tab-ico-ai{
-  width:14px;
-  height:14px;
-  fill:none;
-  stroke:currentColor;
-  stroke-width:1.8;
-  stroke-linecap:round;
-  stroke-linejoin:round;
-}

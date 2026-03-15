@@ -1,7 +1,7 @@
 /* register.js — Page-specific logic */
 /* Shared utilities: ../js/glassui.js */
 
-const BASE_URL = "http://localhost:8001/nexora/api";
+const BASE_URL = "http://localhost:8002/nexora/api";
 
 (function(){
   const veil = document.getElementById('pageVeil');
@@ -107,7 +107,7 @@ function updateStats(){
    CONFIG
    ══════════════════════════════════════════════════════════ */
 /* const API_BASE = 'http://172.16.1.31:8001'; */
-const API_BASE = 'http://localhost:8001';
+const API_BASE = 'http://localhost:8002';
 
 
 const EVENT_API_CANDIDATES = [
@@ -283,6 +283,28 @@ function normalizeCamera(cam, idx = 0) {
   };
 }
 
+function normalizeVideo(video, idx = 0) {
+  const videoUrl = video?.url ? `${API_BASE}${video.url}` : null;
+  return {
+    id_cam: video?.object_name ?? `video-${idx}`,
+    name: video?.file_name ?? `Video ${idx + 1}`,
+    name_cam: video?.file_name ?? `VID-${idx + 1}`,
+    type_event: formatFileSize(video?.size),
+    hls: null,
+    videoUrl: videoUrl,
+    img: null,
+    raw: video,
+    isValidStream: !!videoUrl,
+  };
+}
+
+function formatFileSize(bytes) {
+  if (!bytes) return 'Unknown size';
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+}
+
 function setText(id, value) {
   const el = document.getElementById(id);
   if (el) el.textContent = value;
@@ -316,15 +338,21 @@ function hidePlaceholder() {
 /* ══════════════════════════════════════════════════════════
    CAMERAS
    ══════════════════════════════════════════════════════════ */
+let VIDEOS = [];
+let activeVideo = -1;
+let currentVideo = null;
+
 async function loadCameras() {
   try {
-    const res = await fetch(`${API_BASE}/nexora/api/listCam`);
+    const res = await fetch(`${API_BASE}/videos`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
     const data = await res.json();
-    const arr = Array.isArray(data) ? data : [];
+    const arr = Array.isArray(data?.videos) ? data.videos : [];
 
-    CAMERAS = arr.map((cam, idx) => normalizeCamera(cam, idx));
+    CAMERAS = arr
+      .map((video, idx) => normalizeVideo(video, idx))
+      .reverse();
 
     renderCamCards();
     renderJSON();
@@ -332,13 +360,13 @@ async function loadCameras() {
     const onlineCount = CAMERAS.filter((c) => c.isValidStream).length;
     const onlineBadge = document.querySelector('.lp-status-2');
     if (onlineBadge) {
-      onlineBadge.textContent = `${onlineCount} online`;
+      onlineBadge.textContent = `${onlineCount} videos`;
     }
 
     if (CAMERAS.length > 0) {
       await selectCam(0);
     } else {
-      showPlaceholder('No camera', 'ไม่พบรายการกล้องจาก API', true);
+      showPlaceholder('No videos', 'ไม่พบไฟล์วิดีโอจาก MinIO', true);
       currentEvents = [];
       currentEventIndex = 0;
       renderEvents([]);
@@ -352,7 +380,7 @@ async function loadCameras() {
     currentEventIndex = 0;
     renderCamCards();
     renderJSON();
-    showPlaceholder('Camera load failed', err.message || 'โหลดรายการกล้องไม่สำเร็จ', true);
+    showPlaceholder('Video load failed', err.message || 'โหลดรายการวิดีโอไม่สำเร็จ', true);
     renderEvents([]);
     renderDetectionFromEvents([]);
     renderStats();
@@ -361,7 +389,7 @@ async function loadCameras() {
 
 function getCamCardHTML(cam, i, listKey) {
   const isActive = i === activeCam;
-  const badgeText = isActive ? 'LIVE' : (cam.isValidStream ? 'READY' : 'NO SIGNAL');
+  const badgeText = isActive ? 'PLAYING' : (cam.isValidStream ? 'READY' : 'NO FILE');
   const badgeClass = isActive
     ? 'badge-live'
     : (cam.isValidStream ? 'badge-ready' : 'badge-no-signal');
@@ -375,8 +403,8 @@ function getCamCardHTML(cam, i, listKey) {
 
       <div class="cam-card-body">
         <div class="cam-card-sub">${escapeHtml(cam.name)}</div>
-        <div class="cam-card-name">${escapeHtml(cam.name_cam)} — ${escapeHtml(cam.type_event)}</div>
-        <div class="cam-card-url">${escapeHtml(cam.hls || 'No HLS stream')}</div>
+        <div class="cam-card-name">${escapeHtml(cam.name_cam)}</div>
+        <div class="cam-card-url">${escapeHtml(cam.type_event)}</div>
       </div>
 
       <div class="cam-card-badge ${badgeClass}">
@@ -465,15 +493,15 @@ async function selectCam(i) {
   renderCamCards();
 
   const cam = currentCamera;
-  setText('camNameHud', `${cam.name_cam} — ${cam.type_event} | ${cam.name}`);
+  setText('camNameHud', `${cam.name_cam} | ${cam.type_event}`);
 
   const hudClock = document.getElementById('hudClock');
   if (hudClock) hudClock.style.display = 'flex';
 
-  if (!cam.hls) {
+  if (!cam.videoUrl) {
     connectHLS(null);
   } else {
-    connectHLS(cam.hls);
+    connectVideo(cam.videoUrl);
   }
 
   renderStats();
@@ -482,6 +510,50 @@ async function selectCam(i) {
     loadEventsByCamera(cam),
     loadSettingsByCamera(cam),
   ]);
+}
+
+function connectVideo(url) {
+  const video = document.getElementById('videoEl');
+  const stEl = document.getElementById('hlsState');
+  const liveEl = document.getElementById('liveIndicator');
+
+  if (!video) return;
+
+  if (hlsInst) {
+    hlsInst.destroy();
+    hlsInst = null;
+  }
+
+  video.pause();
+  video.removeAttribute('src');
+  video.load();
+
+  if (!url) {
+    if (stEl) { stEl.textContent = 'No video URL'; stEl.style.color = 'var(--red)'; }
+    if (liveEl) { liveEl.style.background = 'var(--red)'; liveEl.style.animation = 'none'; }
+    showPlaceholder('No video file', 'ไม่พบ URL ของไฟล์วิดีโอ', true);
+    return;
+  }
+
+  if (stEl) { stEl.textContent = 'Loading…'; stEl.style.color = 'var(--amber)'; }
+  if (liveEl) { liveEl.style.background = 'var(--amber)'; liveEl.style.animation = 'none'; }
+
+  hidePlaceholder();
+
+  video.src = url;
+  video.addEventListener('loadedmetadata', () => {
+    video.play().catch(() => {});
+    hidePlaceholder();
+    if (stEl) { stEl.textContent = '● MP4 video'; stEl.style.color = 'var(--green)'; }
+    if (liveEl) { liveEl.style.background = 'var(--green)'; liveEl.style.animation = 'none'; }
+  }, { once: true });
+
+  video.addEventListener('error', () => {
+    const msg = 'Video playback error';
+    if (stEl) { stEl.textContent = msg; stEl.style.color = 'var(--red)'; }
+    if (liveEl) { liveEl.style.background = 'var(--red)'; liveEl.style.animation = 'none'; }
+    showPlaceholder('Playback failed', msg, true);
+  }, { once: true });
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -1966,19 +2038,118 @@ async function submitRules() {
   }
 }
 
-function switchStream(idx) {
-  document.getElementById('stab-main').classList.toggle('on', idx === 0);
-  document.getElementById('stab-sub').classList.toggle('on',  idx === 1);
 
-  const cam = CAMERAS[activeCam];
-  if (!cam) return;
 
-  const url = idx === 0 ? cam.hls : (cam.hls_sub || cam.hls);
-  connectHLS(url);
+
+//////////////////////////////////////////////////////////////////////////////////////////
+
+const MAX_SIZE = 20 * 1024 * 1024;
+const EXT = [".mp4",".mkv",".avi",".mov"];
+
+let selectedFile = null;
+
+function selectVideo(){
+  document.getElementById("video-input").click();
 }
 
+function previewVideo(e){
 
-window.switchStream = switchStream;
+  const file = e.target.files[0];
+  if(!file) return;
+
+  const name = file.name.toLowerCase();
+  const ok = EXT.some(x => name.endsWith(x));
+
+  if(!ok){
+    alert("อนุญาตเฉพาะ mp4 mkv avi mov");
+    return;
+  }
+
+  if(file.size > MAX_SIZE){
+    alert("ไฟล์ต้องไม่เกิน 10MB");
+    return;
+  }
+
+  selectedFile = file;
+
+  const box = document.getElementById("video-preview");
+
+  box.innerHTML = `
+    <div class="col-hdr-add" style="display:flex;align-items:center;gap:8px">
+
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="1.7"
+          stroke-linecap="round" stroke-linejoin="round"
+          style="opacity:.8">
+        <rect x="3" y="5" width="15" height="14" rx="2"></rect>
+        <polygon points="16,7 22,10 22,14 16,17"></polygon>
+      </svg>
+
+      <b style="font-size:14px">${file.name}</b>
+
+      <span style="opacity:.6;margin-left:10px;font-size:14px">
+        ${(file.size/1024/1024).toFixed(2)} MB
+      </span>
+
+    </div>
+  `;
+
+  document.getElementById("upload-btn").style.display = "inline-block";
+
+}
+
+async function uploadVideo() {
+  if (!selectedFile) {
+    alert("ยังไม่ได้เลือกไฟล์");
+    return;
+  }
+
+  const fileName = selectedFile.name; // จำชื่อไฟล์ไว้ก่อนเคลียร์
+
+  const fd = new FormData();
+  fd.append("file", selectedFile);
+
+  try {
+    const res = await fetch(`${API_BASE}/nexora/api/upload-video`, {
+      method: "POST",
+      body: fd
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.detail || "upload failed");
+    }
+
+    alert("upload สำเร็จ");
+
+    // reset preview
+    document.getElementById("video-preview").innerHTML = "";
+    document.getElementById("upload-btn").style.display = "none";
+    document.getElementById("video-input").value = "";
+    selectedFile = null;
+
+    // refresh card list video
+    await loadCameras();
+
+    // พยายามเลือก card ของไฟล์ที่เพิ่งอัป
+    const uploadedIndex = CAMERAS.findIndex(v =>
+      (v.name_cam && v.name_cam.toLowerCase() === fileName.toLowerCase()) ||
+      (v.name && v.name.toLowerCase() === fileName.toLowerCase()) ||
+      (v.raw?.file_name && v.raw.file_name.toLowerCase() === fileName.toLowerCase()) ||
+      (v.raw?.object_name && v.raw.object_name.toLowerCase().includes(fileName.toLowerCase()))
+    );
+
+    if (uploadedIndex !== -1) {
+      await selectCam(uploadedIndex);
+    }
+
+  } catch (err) {
+    console.error(err);
+    alert(err.message || "upload failed");
+  }
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /* expose for inline onclick in HTML */
 window.selectCam = selectCam;

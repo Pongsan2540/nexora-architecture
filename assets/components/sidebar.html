@@ -1,4 +1,4 @@
-<aside class="sidebar">
+<aside class="sidebar" style="height:100vh;min-height:100vh;">
   <div class="sb-logo">
     <div class="sb-logomark">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -7,71 +7,74 @@
     </div>
     <div>
       <div class="sb-title">Nexora</div>
-      <div class="sb-sub">Stream</div>
+      <div style="font-size:10px;font-weight:600;color:var(--t2);letter-spacing:.04em;margin-top:1px;">Architecture</div>
     </div>
   </div>
-
   <div class="sb-scroll">
-    <div class="sb-section">Main</div>
-    <div class="sb-item">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <rect x="3" y="3" width="7" height="7" rx="1"/>
-        <rect x="14" y="3" width="7" height="7" rx="1"/>
-        <rect x="3" y="14" width="7" height="7" rx="1"/>
-        <rect x="14" y="14" width="7" height="7" rx="1"/>
-      </svg>
-      Overview
+    <div class="sb-section">Hub</div>
+    <div class="sb-item" data-page="dashboard.html" onclick="navigateTo('dashboard.html')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 10L12 3l9 7"/>
+        <path d="M5 10v9a1 1 0 001 1h4v-4h4v4h4a1 1 0 001-1v-9"/>
+      </svg>Home
     </div>
-
-    <div class="sb-section">LLM Pipeline</div>
-    <div class="sb-item">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
-      </svg>
-      Stream Conditions
+    <div class="sb-section">Service</div>
+    <div class="sb-item" data-page="sense.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+        <circle cx="12" cy="12" r="3"/>
+      </svg>Sense
     </div>
-
-    <div class="sb-item">
+    <div class="sb-item" data-page="map.html" onclick="navigateTo('map.html')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
-        <polyline points="14,2 14,8 20,8"/>
-      </svg>
-      Prompt Templates
+        <polygon points="1,6 1,22 8,18 16,22 23,18 23,2 16,6 8,2"/>
+        <line x1="8" y1="2" x2="8" y2="18"/>
+        <line x1="16" y1="6" x2="16" y2="22"/>
+      </svg>Map
     </div>
-
-    <div class="sb-item">
+    <div class="sb-item" data-page="insight.html">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-      </svg>
-      Model Config
+        <rect x="3" y="4" width="18" height="18" rx="2"/>
+        <path d="M16 2v4M8 2v4M3 10h18"/>
+      </svg>Insight
     </div>
-
-    <div class="sb-section">Video</div>
-    <div class="sb-item active">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <polygon points="23,7 16,12 23,17"/>
-        <rect x="1" y="5" width="15" height="14" rx="2"/>
-      </svg>
-      Camera Stream
-      <span class="sb-pill" id="ruleCountBadge">0</span>
+    <div class="sb-section">Analytics</div>
+    <div class="sb-item" data-page="stream.html" onclick="navigateTo('stream.html')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="8" width="14" height="8" rx="2"/>
+        <circle cx="19" cy="12" r="3"/>
+        <line x1="9" y1="8" x2="9" y2="4"/>
+        <line x1="6" y1="4" x2="12" y2="4"/>
+        <circle cx="5" cy="12" r="1.5" fill="currentColor" stroke="none"/>
+      </svg>Stream
     </div>
-
+    <div class="sb-item" data-page="video.html" onclick="navigateTo('video.html')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="4" width="20" height="14" rx="2"/>
+        <circle cx="12" cy="11" r="3"/>
+        <path d="M5 7h2M5 7v2" stroke-width="1.5"/>
+        <path d="M17 7h2M19 7v2" stroke-width="1.5"/>
+        <path d="M5 15v-2M5 15h2" stroke-width="1.5"/>
+        <path d="M19 15v-2M17 15h2" stroke-width="1.5"/>
+        <line x1="12" y1="18" x2="12" y2="21"/>
+        <line x1="9" y1="21" x2="15" y2="21"/>
+      </svg>View Ai
+    </div>
     <div class="sb-section">System</div>
-    <div class="sb-item">
+    <div class="sb-item" data-page="user.html">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
-      </svg>
-      Home
+        <path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+        <circle cx="8.5" cy="7" r="4"/>
+        <line x1="20" y1="8" x2="20" y2="14"/>
+        <line x1="23" y1="11" x2="17" y2="11"/>
+      </svg>User
     </div>
   </div>
-
   <div class="sb-footer">
-    <div class="sb-user">
-      <div class="sb-avatar">JD</div>
-      <div>
-        <div class="sb-uname">James Doe</div>
-        <div class="sb-urole">Pipeline Engineer</div>
-      </div>
+    <div class="sb-item" onclick="navigateTo('blackhole-login.html')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3"/>
+      </svg>Login
     </div>
   </div>
 </aside>
