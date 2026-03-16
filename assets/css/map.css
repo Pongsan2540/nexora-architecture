@@ -31,23 +31,110 @@
     #map{position:fixed;inset:0;z-index:0;}
 
     /* ── NAV ── */
-    .topNav{position:fixed;top:18px;left:18px;right:64px;
-      display:flex;justify-content:space-between;align-items:center;z-index:500;}
+    .topNav {
+      position: fixed;
+      top: 18px;
+      left: 18px;
+      right: 18px; /* เปลี่ยนจาก 64px → 18px */
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 500;
+    }
     .brand{font-weight:800;letter-spacing:-.02em;color:var(--t0);}
     .brand small{color:var(--t2);font-weight:700;margin-left:8px}
-    .navLinks{display:flex;gap:8px;}
-    .linkBtn{padding:9px 14px;border-radius:12px;border:1px solid var(--bd);
-      background:var(--ov);backdrop-filter:blur(16px);color:var(--t0);cursor:pointer;
-      font-weight:700;font-size:13px;font-family:inherit;transition:border-color 200ms,transform 180ms;}
-    .linkBtn:hover{border-color:var(--bd-hi);transform:translateY(-1px);}
+    .navLinks {
+      display: flex;
+      align-items: center; /* เพิ่มตรงนี้ */
+      gap: 8px;
+    }
+    .linkBtn{
+      background:none;
+      border:none;
+      padding:0;
+      color:var(--t0);
+      cursor:pointer;
+      font-weight:700;
+      font-size:13px;
+      font-family:inherit;
+      position:relative;
+    }
 
-    .theme-btn{position:fixed;top:22px;right:22px;z-index:500;width:34px;height:34px;
-      background:none;border:none;padding:0;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--t2);}
+    .linkBtn::after{
+      content:"";
+      position:absolute;
+      left:0;
+      bottom:-3px;
+      width:0;
+      height:2px;
+      background:var(--t0);
+      transition:width .2s;
+    }
+
+    .linkBtn:hover::after{
+      width:100%;
+    }
+    
+    .theme-btn {
+      position: relative;
+      top: unset;
+      right: unset;
+      width: 34px;
+      height: 34px;
+      flex-shrink: 0;
+      background: none;
+      border: 1px solid transparent;
+      border-radius: 20px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--t0); /* เปลี่ยนจาก --t2 → --t0 */
+      transition: background 0.2s, border-color 0.2s, transform 0.1s;
+    }
+    
+    .theme-btn:hover {
+      background: var(--bd);
+      border-color: var(--bd-hi);
+    }
+    .theme-btn:active {
+      transform: translateY(2px);
+      opacity: 0.7;
+    }
     .theme-btn svg{position:absolute;transition:opacity 300ms,transform 360ms;}
     [data-theme="dark"]  .i-sun{opacity:0;transform:rotate(70deg) scale(0.3);}
     [data-theme="dark"]  .i-moon{opacity:1;}
     [data-theme="light"] .i-moon{opacity:0;transform:rotate(-70deg) scale(0.3);}
     [data-theme="light"] .i-sun{opacity:1;}
+
+    .linkText {
+      width: 34px;
+      height: 34px;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: -.02em;
+      color: var(--t0);
+      display: inline-flex;
+      padding: 0;
+      border-radius: 20px;
+      border: 1px solid transparent;
+      transition: background 0.2s, border-color 0.2s, text-shadow 0.2s, transform 0.1s;
+    }
+
+    .linkText:hover {
+      background: var(--bd);
+      border-color: var(--bd-hi);
+      text-shadow: 0 0 10px currentColor;
+    }
+
+    .linkText:active {
+      transform: translateY(2px);
+      text-shadow: none;
+      opacity: 0.7;
+    }
 
     /* ── SIDE PANEL ── */
     .panel{position:fixed;top:72px;left:18px;bottom:100px;width:290px;z-index:400;

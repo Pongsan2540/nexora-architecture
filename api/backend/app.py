@@ -6,8 +6,8 @@ from pymongo import MongoClient
 from pprint import pprint
 from pydantic import BaseModel
 
-#client = MongoClient("mongodb://localhost:27017")
-client = MongoClient("mongodb://root:example@localhost:27017/?authSource=admin")
+client = MongoClient("mongodb://localhost:27017")
+#client = MongoClient("mongodb://root:example@localhost:27017/?authSource=admin")
 db = client["ai_login"]
 collection_users = db["users"]
 collection_location = db["location"]
@@ -108,7 +108,7 @@ def serialize_doc(doc):
     doc["_id"] = str(doc["_id"])
     return doc
 
-@api.get("/listEventsA")
+@api.get("/listEvents")
 async def list_events(): 
 
     docs_event = list(collection_event.find())
