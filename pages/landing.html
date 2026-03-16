@@ -25,7 +25,7 @@
   <div class="topNav">
     <div class="brand">Nexora<small>architecture</small></div>
     <div class="navActions">
-      <button class="linkBtn" onclick="navigateBack()">login</button>
+      <button class="linkBtn" onclick="navigateBack()">logout</button>
       <button class="theme-btn" id="themeBtn" aria-label="Toggle theme">
         <svg class="i-moon" width="14" height="14" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="0.9">
           <path d="M11.8 8.6A5.2 5.2 0 014.4 1.2a5.2 5.2 0 100 10.4 5.2 5.2 0 007.4-3z"/>
@@ -58,7 +58,7 @@
         </p>
 
         <div class="ctaRow">
-          <button class="btn primary">
+          <button class="btn primary" onclick="navigateTo('stream.html')">
             Start Learning
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M5 12h12"></path><path d="M13 6l6 6-6 6"></path>
@@ -134,7 +134,7 @@
 
     <div class="carousel-stage" id="carouselStage">
 
-      <div class="c-card" data-idx="0">
+      <div class="c-card" data-idx="0" onclick="navigateTo('ai-search.html')">
         <div class="c-img">
           <div class="c-img-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg></div>
           <div class="c-img-bar"></div>
@@ -165,53 +165,53 @@
         </div>
       </div>
 
-      <div class="c-card" data-idx="2">
+      <div class="c-card" data-idx="2" onclick="navigateTo('dashboard.html')">
         <div class="c-img">
           <div class="c-img-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div>
           <div class="c-img-bar"></div>
         </div>
         <div class="c-body">
           <div class="c-num">03 / 06</div>
-          <div class="c-title">AI Chord Recognition</div>
+          <div class="c-title">Nexora Insight</div>
           <p class="c-desc">Play into your mic — AI instantly identifies chords and tracks your accuracy over time.</p>
           <div class="c-tag">AI-Powered</div>
         </div>
       </div>
 
-      <div class="c-card" data-idx="3">
+      <div class="c-card" data-idx="3" onclick="navigateTo('register.html')">
         <div class="c-img">
           <div class="c-img-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></div>
           <div class="c-img-bar"></div>
         </div>
         <div class="c-body">
           <div class="c-num">04 / 06</div>
-          <div class="c-title">Community Challenges</div>
+          <div class="c-title">Users Management</div>
           <p class="c-desc">Weekly jams, leaderboards, and peer feedback from 50,000+ active players worldwide.</p>
           <div class="c-tag">Community</div>
         </div>
       </div>
 
-      <div class="c-card" data-idx="4">
+      <div class="c-card" data-idx="4" onclick="navigateTo('stream.html')">
         <div class="c-img">
           <div class="c-img-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
           <div class="c-img-bar"></div>
         </div>
         <div class="c-body">
           <div class="c-num">05 / 06</div>
-          <div class="c-title">Progress Tracking</div>
+          <div class="c-title">Stream Management</div>
           <p class="c-desc">Speed, accuracy, and practice streaks — know exactly what to work on next.</p>
           <div class="c-tag">Analytics</div>
         </div>
       </div>
 
-      <div class="c-card" data-idx="5">
+      <div class="c-card" data-idx="5" onclick="navigateTo('video.html')">
         <div class="c-img">
           <div class="c-img-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>
           <div class="c-img-bar"></div>
         </div>
         <div class="c-body">
           <div class="c-num">06 / 06</div>
-          <div class="c-title">Song Library</div>
+          <div class="c-title">Video Management</div>
           <p class="c-desc">500+ songs with scrolling tabs, backing tracks, and adjustable tempo.</p>
           <div class="c-tag">500+ Songs</div>
         </div>

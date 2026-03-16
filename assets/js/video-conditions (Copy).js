@@ -1,61 +1,6 @@
 /* register.js — Page-specific logic */
 /* Shared utilities: ../js/glassui.js */
 
-/* ── Drill-down styles ── */
-(function(){
-  const s = document.createElement('style');
-  s.textContent = `
-    /* clickable event card */
-    .ev-drillable { transition: background .15s; }
-    .ev-drillable:hover { background: rgba(255,255,255,.04); }
-    .ev-arrow { white-space: nowrap; font-size: 11px; }
-
-    /* detail panel header */
-    .ev-detail-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 12px 8px;
-      border-bottom: 1px solid var(--bd, rgba(255,255,255,.08));
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      background: var(--bg, #0e0d0b);
-    }
-    .ev-back-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      padding: 4px 10px;
-      border-radius: 6px;
-      border: 1px solid var(--bd, rgba(255,255,255,.12));
-      background: transparent;
-      color: var(--t2, rgba(255,255,255,.55));
-      font-size: 11px;
-      font-family: inherit;
-      cursor: pointer;
-      flex-shrink: 0;
-      transition: background .15s, color .15s;
-    }
-    .ev-back-btn:hover { background: rgba(255,255,255,.07); color: var(--t1, #fff); }
-    .ev-detail-title {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--t1, #fff);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .ev-detail-body { display: flex; flex-direction: column; gap: 8px; padding: 8px 0; }
-    .ev-detail-card { opacity: 0; animation: fadeInUp .2s forwards; }
-    @keyframes fadeInUp {
-      from { opacity:0; transform:translateY(6px); }
-      to   { opacity:1; transform:translateY(0);   }
-    }
-  `;
-  document.head.appendChild(s);
-})();
-
 const BASE_URL = "http://localhost:8002/nexora/api";
 
 (function(){
@@ -169,9 +114,6 @@ const EVENT_API_CANDIDATES = [
   (cam) => `${API_BASE}/nexora/api/listEventCam?id_cam=${encodeURIComponent(cam.id_cam)}`,
 ];
 
-const EVENT_DETAIL_API = (evId) =>
-  `${API_BASE}/nexora/api/listEventDetail?id_event=${encodeURIComponent(evId)}`;
-
 const SETTINGS_API_CANDIDATES = [
   (cam) => `${API_BASE}/nexora/api/listSetting?id_cam=${encodeURIComponent(cam.id_cam)}`,
   (cam) => `${API_BASE}/nexora/api/settings?id_cam=${encodeURIComponent(cam.id_cam)}`,
@@ -190,7 +132,6 @@ let thumbTimer = null;
 let lastJSONData = null;
 let currentSettings = [];
 let currentSettingIndex = 0;
-let drillEvent = null; // event หัวข้อที่กำลัง drill-down อยู่
 
 /* rules */
 let ruleId = 0;
@@ -844,58 +785,13 @@ async function loadSettingsByCamera(cam) {
 }
 
 
+
 /* ══════════════════════════════════════════════════════════
    EVENT RENDER
    ══════════════════════════════════════════════════════════ */
-function buildEventCard(ev, idx) {
-  const title = ev.name_project || '-';
-  const sub   = ev.id_event  || '-';
-  const desc  = ev.desc || '-';
-  const tag   = ev.id_cam  || '-';
-  const level = ev.level || '-';
-  const id_mongo = ev._id || '-';
-  const img   = ev.img  || '';
-  const evId  = ev._id  || ev.id || '';
-  const matchedRule = getMatchedRule(ev);
-
-  console.log("ev:", ev);
-  console.log("idx:", idx);
-
-  const badgeHtml = matchedRule
-    ? `<span class="event-card-badge ${TYPE_META[matchedRule.type].tag}">
-        ${escapeHtml(id_mongo)}
-      </span>`
-    : `<span class="event-card-badge">${escapeHtml(id_mongo)}</span>`;
-
-  return `
-    <div class="event-card ev-drillable ${matchedRule ? `hit-${matchedRule.type}` : ''}"
-         data-ev-id="${escapeHtml(evId)}"
-         data-ev-idx="${idx}"
-         style="cursor:pointer;">
-
-      <div class="event-card-body">
-        <div class="event-card-top">
-          <div class="event-card-index">${String(idx + 1).padStart(2, '0')}</div>
-          ${badgeHtml}
-          <span class="ev-arrow" style="margin-left:auto;opacity:.45;font-size:11px;">&#8250; ดูรายการ</span>
-        </div>
-        <div class="event-card-title">${escapeHtml(title)}</div>
-        <div class="event-card-sub">${escapeHtml(sub)}</div>
-        <div class="event-card-meta">
-          <span class="event-meta-chip">Cam: ${escapeHtml(currentCamera.name_cam)}</span>
-          <span class="event-meta-chip">Tag: ${escapeHtml(tag)}</span>
-        </div>
-        <div class="event-card-desc">${escapeHtml(desc)}</div>
-      </div>
-    </div>
-  `;
-}
-
 function renderEvents(events = []) {
   const feed = document.getElementById('streamFeed');
   if (!feed) return;
-
-  drillEvent = null; // reset drill state เมื่อ render list ใหม่
 
   if (!currentCamera) {
     feed.innerHTML = `<div class="stat-name">I didn't choose a camera</div>`;
@@ -910,94 +806,29 @@ function renderEvents(events = []) {
     return;
   }
 
-  feed.innerHTML = events.map((ev, idx) => buildEventCard(ev, idx)).join('');
+  feed.innerHTML = events.map((ev, idx) => {
+    const title = ev.name || '-';
+    const sub = ev.sub || '-';
+    const desc = ev.desc || '-';
+    const tag = ev.tag || '-';
+    const level = ev.level || '-';
+    const hours = ev.hours || '-';
+    const img = ev.img || '';
+    const matchedRule = getMatchedRule(ev);
 
-  // bind drill-down click
-  feed.querySelectorAll('.ev-drillable').forEach(card => {
-    card.addEventListener('click', () => {
-      const idx = Number(card.dataset.evIdx);
-      const ev  = events[idx];
-      if (ev) openEventDetail(ev);
-    });
-  });
-
-  setText('tokenCount', String(events.length));
-  setText('hitCount',   String(events.filter(ev => !!getMatchedRule(ev)).length));
-}
-
-/* ──────────────────────────────────────────────
-   DRILL-DOWN: โหลดและแสดง event ย่อย
-   ────────────────────────────────────────────── */
-async function openEventDetail(ev) {
-  drillEvent = ev;
-
-  console.log("drillEvent:", drillEvent);
-
-  const feed  = document.getElementById('streamFeed');
-  if (!feed) return;
-
-  const evId    = ev._id || ev.id || '';
-  const evTitle = ev.id_event;
-
-  console.log("evId:", evId);
-  console.log("evTitle:", evTitle);
-
-
-  // แสดง header + loading
-  feed.innerHTML = `
-    <div class="ev-detail-header">
-      <button class="ev-back-btn" onclick="closeEventDetail()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-             width="14" height="14"><polyline points="15,18 9,12 15,6"></polyline></svg>
-        Back
-      </button>
-      <div class="ev-detail-title">${escapeHtml(evTitle)}</div>
-    </div>
-    <div class="ev-detail-body" id="evDetailBody">
-      <div class="det-empty">Loading รายการ event…</div>
-    </div>
-  `;
-
-  try {
-    const url  = EVENT_DETAIL_API(evTitle);
-    const data = await tryFetchJson(url);
-
-    let items = [];
-    if (Array.isArray(data))            items = data;
-    else if (Array.isArray(data?.data)) items = data.data;
-    else if (Array.isArray(data?.events)) items = data.events;
-    else if (Array.isArray(data?.items))  items = data.items;
-
-    renderEventDetailItems(items, evTitle);
-  } catch (err) {
-    const body = document.getElementById('evDetailBody');
-    if (body) body.innerHTML = `
-      <div class="det-empty" style="color:var(--red)">
-        โหลดรายการไม่สำเร็จ: ${escapeHtml(err.message || 'unknown error')}
-      </div>`;
-  }
-}
-
-function renderEventDetailItems(items, groupTitle) {
-  const body = document.getElementById('evDetailBody');
-  if (!body) return;
-
-  if (!items.length) {
-    body.innerHTML = `<div class="det-empty">ไม่พบรายการใน "${escapeHtml(groupTitle)}"</div>`;
-    return;
-  }
-
-  body.innerHTML = items.map((item, idx) => {
-    const evId       = item.id_event     || '-';
-    const project    = item.name_project || '-';
-    const frame      = item.frame        != null ? item.frame : '-';
-    const tag        = item.tag          || '-';
-    const level      = item.level        || '-';
+    const badgeHtml = matchedRule
+      ? `<span class="event-card-badge ${TYPE_META[matchedRule.type].tag}">${TYPE_META[matchedRule.type].label}</span>`
+      : `<span class="event-card-badge">${escapeHtml(tag)}</span>`;
 
     return `
-      <div class="event-card ev-detail-card" style="animation-delay:${idx * 40}ms">
+      <div class="event-card ${matchedRule ? `hit-${matchedRule.type}` : ''}">
         <div class="event-card-thumb">
-          <div class="event-card-thumb-fallback" style="display:flex;">
+          ${
+            img
+              ? `<img src="${escapeHtml(img)}" alt="${escapeHtml(title)}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">`
+              : ''
+          }
+          <div class="event-card-thumb-fallback" style="${img ? 'display:none;' : 'display:flex;'}">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
               <rect x="3" y="4" width="18" height="16" rx="2"></rect>
               <circle cx="9" cy="10" r="2"></circle>
@@ -1005,29 +836,34 @@ function renderEventDetailItems(items, groupTitle) {
             </svg>
           </div>
         </div>
+
         <div class="event-card-body">
           <div class="event-card-top">
             <div class="event-card-index">${String(idx + 1).padStart(2, '0')}</div>
-            <span class="event-card-badge">${escapeHtml(tag)}</span>
+            ${badgeHtml}
           </div>
-          <div class="event-card-title">${escapeHtml(project)}</div>
+
+          <div class="event-card-title">${escapeHtml(title)}</div>
+          <div class="event-card-sub">${escapeHtml(sub)}</div>
+
           <div class="event-card-meta">
-            <span class="event-meta-chip">ID: ${escapeHtml(evId)}</span>
-            <span class="event-meta-chip">Frame: ${escapeHtml(String(frame))}</span>
+            <span class="event-meta-chip">Cam: ${escapeHtml(currentCamera.name_cam)}</span>
             <span class="event-meta-chip">Level: ${escapeHtml(level)}</span>
+            <span class="event-meta-chip">Tag: ${escapeHtml(tag)}</span>
+          </div>
+
+          <div class="event-card-desc">${escapeHtml(desc)}</div>
+
+          <div class="event-card-footer">
+            <span class="event-hours">Hours: ${escapeHtml(hours)}</span>
           </div>
         </div>
       </div>
     `;
   }).join('');
 
-  setText('tokenCount', String(items.length));
-  setText('hitCount', '–');
-}
-
-function closeEventDetail() {
-  drillEvent = null;
-  renderEvents(currentEvents); // กลับไปแสดง list หัวข้อเดิม
+  setText('tokenCount', String(events.length));
+  setText('hitCount', String(events.filter((ev) => !!getMatchedRule(ev)).length));
 }
 
 function recalcRuleStats(events = []) {
@@ -2340,4 +2176,3 @@ window.changeStatsEvent = changeStatsEvent;
 window.changeStatsSetting = changeStatsSetting;
 window.saveCurrentSetting = saveCurrentSetting;
 window.resetStatsForm = resetStatsForm;
-window.closeEventDetail = closeEventDetail;

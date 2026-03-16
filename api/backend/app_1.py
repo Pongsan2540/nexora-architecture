@@ -16,24 +16,30 @@ import mimetypes
 import base64
 from datetime import datetime
 
-client = MongoClient("mongodb://localhost:27017")
-#client = MongoClient("mongodb://root:example@localhost:27017/?authSource=admin")
+from typing import Optional
+from pydantic import BaseModel, Field, ConfigDict
+
+from bson import ObjectId
+from bson.errors import InvalidId
+
+#client = MongoClient("mongodb://localhost:27017")
+client = MongoClient("mongodb://root:example@localhost:27017/?authSource=admin")
 db = client["ai_login"]
 collection_users = db["users"]
 collection_location = db["location"]
 collection_event = db["event"]
-
 collection_prompt = db["ai-prompt"]
 collection_prompt_all = db["ai-prompt-all"]
 
+collection_event_project = db["event-project"]
+collection_event_details = db["event-details"]
 
 client = Minio(
-    "localhost:9000",
-    access_key="minioadmin",
-    secret_key="minioadmin",
+    "localhost:9000", #9000
+    access_key="admin", #minioadmin
+    secret_key="W9STWO4YYhCS8uCH", #minioadmin
     secure=False
 )
-
 
 API_PREFIX = "/nexora/api"
 
@@ -161,6 +167,7 @@ async def upload_video(file: UploadFile = File(...)):
                 "use_sub_prompt": False,
                 "model_prompt": None,
                 "model_detect": None,
+                "type_analyze": "VIDEO",
             }
 
             result = collection_prompt.insert_one(doc)
@@ -183,14 +190,7 @@ async def upload_video(file: UploadFile = File(...)):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-
-
-
-
-
-from typing import Optional
-from pydantic import BaseModel, Field, ConfigDict
+    
 
 @api.get("/listSetting")
 async def list_setting(id_cam: Optional[str] = Query(default=None)):
@@ -209,6 +209,138 @@ async def list_setting(id_cam: Optional[str] = Query(default=None)):
         print(result)
 
     return result
+
+
+
+class UpdateSettingPayload(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+ 
+    id: str = Field(alias="_id")
+    id_cam: str
+    model_prompt: str
+    config_prompt: str
+    use_prompt: bool
+    use_sub_prompt: bool
+    model_detect: str
+    config_detect: float
+    use_detect: bool
+ 
+@api.put("/updateSetting")
+async def update_setting(payload: UpdateSettingPayload):
+
+    # แปลง _id เป็น ObjectId (รองรับทั้ง hex string และ string ธรรมดา)
+    try:
+        doc_id = ObjectId(payload.id)
+    except (InvalidId, Exception):
+        doc_id = payload.id  # fallback ถ้าไม่ใช่ ObjectId format
+ 
+    print(payload.use_prompt)
+
+    update_fields = {
+        "model_prompt":   payload.model_prompt,
+        "config_prompt":  payload.config_prompt,
+        "use_prompt":     payload.use_prompt,
+        "use_sub_prompt": payload.use_sub_prompt,
+        "model_detect":   payload.model_detect,
+        "config_detect":  payload.config_detect,
+        "use_detect":     payload.use_detect,
+    }
+ 
+    if payload.use_prompt == True :
+        update_fields["status_prompt"] = True
+    elif payload.use_prompt == False :
+        update_fields["status_prompt"] = False
+
+    if payload.use_sub_prompt == True :
+        update_fields["status_sub_prompt"] = True
+    elif payload.use_sub_prompt == False :
+        update_fields["status_sub_prompt"] = False
+
+    if payload.use_detect == True :
+        update_fields["status_detect"] = True
+    elif payload.use_detect == False :
+        update_fields["status_detect"] = False
+
+    result = collection_prompt.update_one(
+        {"_id": doc_id, "id_cam": payload.id_cam},
+        {"$set": update_fields},
+    )
+ 
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="setting not found")
+ 
+    pprint(update_fields)
+
+    return {
+        "ok": True,
+        "updated_id": payload.id,
+        "modified": result.modified_count,
+    }
+
+
+
+
+
+@api.get("/listEventCam")
+async def list_event(id_cam: str | None = None):
+    query = {}
+
+    if id_cam:
+        query["id_cam"] = id_cam
+
+    docs = list(collection_event_project.find(query))
+
+    print("collection_event_project : ", docs)
+
+    result = []
+    for d in docs:
+        d["_id"] = str(d["_id"])
+        result.append(d)
+
+    return result
+
+
+
+
+class EventDetailItem(BaseModel):
+    id_event: str
+    name_project: str
+    frame: Optional[int] = None
+    tag: Optional[str] = None
+    level: Optional[str] = None
+
+    class Config:
+        populate_by_name = True
+
+def serialize(doc: dict) -> dict:
+    doc = dict(doc)
+    if "_id" in doc:
+        doc["_id"] = str(doc["_id"])
+    return doc
+
+@api.get("/listEventDetail")
+async def list_event_detail(
+    id_event: str = Query(..., description="ID ของ event หัวข้อ")
+):
+    print(id_event)
+
+    query = {"id_event": id_event}
+    cursor = collection_event_details.find(query)
+    items = [serialize(doc) for doc in cursor]
+
+    # fallback: ลอง query ด้วย ObjectId
+    if not items:
+        try:
+            oid = ObjectId(id_event)
+            cursor = collection_event_details.find({"_id": oid})
+            items = [serialize(doc) for doc in cursor]
+        except Exception:
+            pass
+
+    if not items:
+        return []
+
+    return items
 
 
     

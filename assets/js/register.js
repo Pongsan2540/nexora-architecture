@@ -1,5 +1,57 @@
-/* register.js — Page-specific logic */
-/* Shared utilities: ../js/glassui.js */
+/* ── Drill-down styles ── */
+(function(){
+  const s = document.createElement('style');
+  s.textContent = `
+    /* clickable event card */
+    .ev-drillable { transition: background .15s; }
+    .ev-drillable:hover { background: rgba(255,255,255,.04); }
+    .ev-arrow { white-space: nowrap; font-size: 11px; }
+
+    /* detail panel header */
+    .ev-detail-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px 8px;
+      border-bottom: 1px solid var(--bd, rgba(255,255,255,.08));
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: var(--bg, #0e0d0b);
+    }
+    .ev-back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--bd, rgba(255,255,255,.12));
+      background: transparent;
+      color: var(--t2, rgba(255,255,255,.55));
+      font-size: 11px;
+      font-family: inherit;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background .15s, color .15s;
+    }
+    .ev-back-btn:hover { background: rgba(255,255,255,.07); color: var(--t1, #fff); }
+    .ev-detail-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--t1, #fff);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .ev-detail-body { display: flex; flex-direction: column; gap: 8px; padding: 8px 0; }
+    .ev-detail-card { opacity: 0; animation: fadeInUp .2s forwards; }
+    @keyframes fadeInUp {
+      from { opacity:0; transform:translateY(6px); }
+      to   { opacity:1; transform:translateY(0);   }
+    }
+  `;
+  document.head.appendChild(s);
+})();
 
 const BASE_URL = "http://localhost:8001/nexora/api";
 
@@ -92,7 +144,8 @@ function updateStats(){
   document.getElementById('statTotal').textContent  = users.length;
   document.getElementById('statActive').textContent = users.filter(u=>u.status==='Active').length;
   document.getElementById('statPending').textContent= users.filter(u=>u.status==='Pending').length;
-  document.getElementById('sbPill').textContent     = users.length;
+  const sbPill = document.getElementById('sbPill');
+  if (sbPill) sbPill.textContent = users.length;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////

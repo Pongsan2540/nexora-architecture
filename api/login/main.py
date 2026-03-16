@@ -23,8 +23,8 @@ load_dotenv()
 # ─────────────────────────────────────────
 #  Config
 # ─────────────────────────────────────────
-# MONGODB_URL  = os.getenv("MONGODB_URL", "mongodb://root:example@192.168.1.80:27017/?authSource=admin")
-MONGODB_URL  = os.getenv("MONGODB_URL", "mongodb://localhost:27017")
+MONGODB_URL  = os.getenv("MONGODB_URL", "mongodb://root:example@172.16.1.31:27017/?authSource=admin")
+#MONGODB_URL  = os.getenv("MONGODB_URL", "mongodb://localhost:27017")
 DB_NAME      = os.getenv("DB_NAME", "ai_login")
 JWT_SECRET   = os.getenv("JWT_SECRET", "change-this-secret-in-production")
 JWT_EXPIRE_H = int(os.getenv("JWT_EXPIRE_HOURS", "24"))
