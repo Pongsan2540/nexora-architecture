@@ -1977,7 +1977,6 @@ function switchStream(idx) {
   connectHLS(url);
 }
 
-
 window.switchStream = switchStream;
 
 /* expose for inline onclick in HTML */

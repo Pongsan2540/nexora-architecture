@@ -1716,3 +1716,18 @@ html,body{height:100%;background:var(--bg);color:var(--t0);font-family:'Inter',s
   stroke-linecap:round;
   stroke-linejoin:round;
 }
+
+.upload-icon {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 6px;
+  cursor: pointer;
+  opacity: 0.75;
+  transition: opacity 0.2s, transform 0.2s;
+  vertical-align: middle;
+}
+
+.upload-icon:hover {
+  opacity: 1;
+  transform: translateY(-1px);
+}

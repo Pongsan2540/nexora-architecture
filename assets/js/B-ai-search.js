@@ -189,7 +189,6 @@ function addTimeline(q,html,entryId){
     tlWrap.appendChild(div);
   });
 }
-window.toggleRight=function(){const r=document.getElementById('rightPanel'),s=document.querySelector('.split');r.classList.toggle('collapsed');const collapsed=r.classList.contains('collapsed');s.style.gridTemplateColumns=collapsed?'1fr 42px':'1fr 340px';setTimeout(()=>{gResize();},290);};
 window.rswitch=function(tab){document.getElementById('tg').classList.toggle('on',tab==='graph');document.getElementById('tt').classList.toggle('on',tab==='timeline');document.getElementById('pg').classList.toggle('on',tab==='graph');document.getElementById('pt').classList.toggle('on',tab==='timeline');};
 window.addEventListener('load',()=>{gResize();initGraph();startGDraw();});
 window.addEventListener('resize',()=>{gResize();bgR();});
