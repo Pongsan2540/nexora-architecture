@@ -1,0 +1,47 @@
+{
+  "system": {
+    "name": "CCTV NLC System",
+    "version": "1.0.0",
+    "timezone": "Asia/Bangkok"
+  },
+  "cameras": {
+    "camera_1": {
+      "settings": {
+        "fps": 30,
+        "brightness": 10
+      },
+      "is_active": false
+    },
+    "camera_2": {
+      "settings": {
+        "fps": 30,
+        "brightness": 10
+      },
+      "is_active": false
+    },
+    "camera_3": {
+      "settings": {
+        "fps": 30
+      },
+      "is_active": true
+    },
+    "camera_4": {
+      "settings": {
+        "fps": 30
+      },
+      "is_active": true
+    },
+    "camera_5": {
+      "settings": {
+        "fps": 30
+      },
+      "is_active": false
+    },
+    "camera_6": {
+      "settings": {
+        "fps": 30
+      },
+      "is_active": true
+    }
+  }
+}

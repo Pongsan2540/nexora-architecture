@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CCTV Command</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #f5f5f5; color: #222; font-family: 'Sarabun', sans-serif; font-size: 15px; }
+
+  .topbar { background: #fff; border-bottom: 1px solid #e0e0e0; padding: 0 24px; height: 52px; display: flex; align-items: center; gap: 12px; }
+  .topbar-title { font-size: 15px; font-weight: 500; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: #22c55e; }
+  .topbar-model { margin-left: auto; font-size: 12px; color: #888; }
+
+  .shell { display: grid; grid-template-columns: 220px 1fr; height: calc(100vh - 52px); }
+
+  /* Sidebar */
+  .sidebar { background: #fff; border-right: 1px solid #e0e0e0; display: flex; flex-direction: column; overflow-y: auto; }
+  .sidebar-section { padding: 16px; border-bottom: 1px solid #f0f0f0; }
+  .sec-label { font-size: 11px; color: #aaa; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.06em; }
+  .cam-row { display: flex; align-items: center; gap: 8px; padding: 6px 4px; border-radius: 4px; cursor: default; }
+  .cam-row:hover { background: #f9f9f9; }
+  .cam-status { width: 6px; height: 6px; border-radius: 50%; background: #22c55e; flex-shrink: 0; }
+  .cam-status.off { background: #f87171; }
+  .cam-name { font-size: 13px; flex: 1; }
+  .cam-fps { font-size: 11px; color: #aaa; }
+
+  .quick-btn { display: block; width: 100%; text-align: left; background: none; border: 1px solid #e8e8e8; color: #444; font-family: 'Sarabun', sans-serif; font-size: 13px; padding: 7px 10px; border-radius: 5px; cursor: pointer; margin-bottom: 5px; transition: all 0.15s; }
+  .quick-btn:hover { background: #f5f5f5; border-color: #ccc; }
+
+  /* Main */
+  .main { display: flex; flex-direction: column; overflow: hidden; }
+
+  .cmd-area { background: #fff; border-bottom: 1px solid #e0e0e0; padding: 16px 20px; }
+  .cmd-row { display: flex; gap: 8px; }
+  .cmd-input { flex: 1; border: 1px solid #ddd; border-radius: 6px; padding: 10px 14px; font-family: 'Sarabun', sans-serif; font-size: 14px; color: #222; outline: none; transition: border 0.2s; }
+  .cmd-input:focus { border-color: #888; }
+  .cmd-input::placeholder { color: #bbb; }
+  .cmd-btn { background: #222; color: #fff; border: none; border-radius: 6px; padding: 10px 20px; font-family: 'Sarabun', sans-serif; font-size: 14px; cursor: pointer; transition: background 0.15s; white-space: nowrap; }
+  .cmd-btn:hover { background: #444; }
+  .cmd-btn:disabled { background: #ccc; cursor: not-allowed; }
+
+  /* Panels */
+  .panels { flex: 1; display: grid; grid-template-columns: 1fr 1fr; overflow: hidden; }
+  .panel { display: flex; flex-direction: column; overflow: hidden; border-right: 1px solid #e8e8e8; }
+  .panel:last-child { border-right: none; }
+  .panel-head { padding: 12px 18px; border-bottom: 1px solid #f0f0f0; background: #fafafa; }
+  .panel-title { font-size: 12px; color: #888; }
+  .panel-body { flex: 1; overflow-y: auto; padding: 16px 18px; }
+
+  /* Result card */
+  .result-card { background: #fff; border: 1px solid #e8e8e8; border-radius: 8px; padding: 16px; margin-bottom: 10px; }
+  .result-input { font-size: 13px; color: #555; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0; }
+  .result-input span { color: #222; font-weight: 500; }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+  .tag { font-size: 12px; padding: 3px 10px; border-radius: 99px; border: 1px solid #e0e0e0; color: #555; background: #fafafa; }
+  .tag-action { background: #eff6ff; border-color: #bfdbfe; color: #2563eb; }
+  .tag-target { background: #f0fdf4; border-color: #bbf7d0; color: #16a34a; }
+  .tag-param  { background: #fffbeb; border-color: #fde68a; color: #b45309; }
+  .conf-row { display: flex; align-items: center; gap: 8px; }
+  .conf-label { font-size: 12px; color: #aaa; }
+  .conf-bar { flex: 1; height: 4px; background: #f0f0f0; border-radius: 2px; overflow: hidden; }
+  .conf-fill { height: 100%; background: #22c55e; border-radius: 2px; transition: width 0.4s; }
+  .conf-val { font-size: 12px; color: #888; min-width: 32px; text-align: right; }
+  .response-text { font-size: 14px; color: #333; line-height: 1.6; padding-top: 12px; border-top: 1px solid #f0f0f0; }
+
+  /* Log */
+  .log-item { padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
+  .log-item:last-child { border-bottom: none; }
+  .log-top { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; }
+  .log-time { font-size: 11px; color: #bbb; }
+  .log-cmd { font-size: 13px; color: #333; flex: 1; }
+  .log-ok  { font-size: 11px; color: #22c55e; }
+  .log-err { font-size: 11px; color: #f87171; }
+  .log-sub { font-size: 12px; color: #aaa; }
+
+  /* Loading */
+  .loading { display: flex; align-items: center; gap: 8px; color: #aaa; font-size: 13px; padding: 20px 0; }
+  .ld span { display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: #ccc; animation: ld 1.1s ease-in-out infinite; margin-right: 3px; }
+  .ld span:nth-child(2) { animation-delay: 0.15s; }
+  .ld span:nth-child(3) { animation-delay: 0.3s; }
+  @keyframes ld { 0%,80%,100%{opacity:.2;transform:scale(0.8)} 40%{opacity:1;transform:scale(1)} }
+
+  .empty { font-size: 13px; color: #ccc; padding-top: 20px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="dot" id="ollamaDot"></div>
+  <div class="topbar-title">CCTV Command</div>
+  <div class="topbar-model" id="modelLabel">qwen2.5:7b</div>
+</div>
+
+<div class="shell">
+  <div class="sidebar">
+    <div class="sidebar-section">
+      <div class="sec-label">กล้อง</div>
+      <div id="camList"><div class="empty">กำลังโหลด...</div></div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sec-label">คำสั่งด่วน</div>
+      <button class="quick-btn" onclick="fill('แสดงสถานะกล้องทั้งหมด')">ดูสถานะทั้งหมด</button>
+      <button class="quick-btn" onclick="fill('ปิดกล้องทั้งหมด')">ปิดกล้องทั้งหมด</button>
+      <button class="quick-btn" onclick="fill('เปิดกล้องทั้งหมด')">เปิดกล้องทั้งหมด</button>
+      <button class="quick-btn" onclick="fill('รายงาน log คำสั่งล่าสุด')">ดู log ล่าสุด</button>
+      <button class="quick-btn" onclick="fill('ตั้ง FPS กล้องทั้งหมดเป็น 30')">FPS ทั้งหมด → 30</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="cmd-area">
+      <div class="cmd-row">
+        <input class="cmd-input" id="cmdInput"
+          placeholder="พิมคำสั่ง... เช่น ปรับความสว่างกล้อง 1 เป็น 80"
+          onkeydown="if(event.key==='Enter') send()" />
+        <button class="cmd-btn" id="sendBtn" onclick="send()">ส่งคำสั่ง</button>
+      </div>
+    </div>
+
+    <div class="panels">
+      <div class="panel">
+        <div class="panel-head"><span class="panel-title">ผลลัพธ์</span></div>
+        <div class="panel-body" id="resultPanel"><div class="empty">รอคำสั่ง...</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head">
+          <span class="panel-title">ประวัติคำสั่ง</span>
+          <span style="float:right;font-size:11px;color:#bbb;" id="logCount"></span>
+        </div>
+        <div class="panel-body" id="logPanel"><div class="empty">ยังไม่มี log</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = 'http://localhost:8121';
+const logs = [];
+
+function fill(t) {
+  document.getElementById('cmdInput').value = t;
+  document.getElementById('cmdInput').focus();
+}
+
+async function loadCameras() {
+  try {
+    const r = await fetch(`${API}/cameras`);
+    const d = await r.json();
+    const list = d.cameras || [];
+    document.getElementById('camList').innerHTML = list.length
+      ? list.map(c => `
+          <div class="cam-row">
+            <div class="cam-status ${c.is_active ? '' : 'off'}"></div>
+            <div class="cam-name">${c.name || c.camera_id}</div>
+            <div class="cam-fps">${c.settings?.fps || '--'}fps</div>
+          </div>`).join('')
+      : '<div class="empty">ไม่พบกล้อง</div>';
+  } catch {
+    document.getElementById('camList').innerHTML = '<div class="empty" style="color:#f87171;">เชื่อมต่อไม่ได้</div>';
+  }
+}
+
+async function send() {
+  const cmd = document.getElementById('cmdInput').value.trim();
+  if (!cmd) return;
+
+  const btn = document.getElementById('sendBtn');
+  btn.disabled = true;
+  btn.textContent = 'กำลังประมวลผล...';
+  document.getElementById('resultPanel').innerHTML = `
+    <div class="loading"><div class="ld"><span></span><span></span><span></span></div> กำลังวิเคราะห์...</div>`;
+
+  try {
+    const res = await fetch(`${API}/command`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ command: cmd })
+    });
+    const data = await res.json();
+    renderResult(cmd, data);
+    addLog(cmd, data);
+    document.getElementById('cmdInput').value = '';
+    loadCameras();
+  } catch(e) {
+    document.getElementById('resultPanel').innerHTML =
+      `<div class="result-card" style="color:#f87171;">เชื่อมต่อ backend ไม่ได้: ${e.message}</div>`;
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'ส่งคำสั่ง';
+}
+
+function renderResultData(result) {
+  if (!result || !result.success) return '';
+
+  // get_status — แสดงข้อมูลกล้อง
+  if (result.cameras) {
+    return result.cameras.map(c => `
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid #f0f0f0;">
+        <div style="font-size:13px;font-weight:500;margin-bottom:8px;">${c.name || c.camera_id}</div>
+        <table style="width:100%;font-size:13px;border-collapse:collapse;">
+          ${c.location   ? `<tr><td style="color:#888;padding:3px 0;width:40%">ตำแหน่ง</td><td>${c.location}</td></tr>` : ''}
+          ${c.is_active !== undefined ? `<tr><td style="color:#888;padding:3px 0;">สถานะ</td><td>${c.is_active ? '<span style="color:#22c55e">เปิดอยู่</span>' : '<span style="color:#f87171">ปิดอยู่</span>'}</td></tr>` : ''}
+          ${c.settings ? Object.entries(c.settings).map(([k,v]) =>
+            `<tr><td style="color:#888;padding:3px 0;">${k}</td><td>${v}</td></tr>`
+          ).join('') : ''}
+        </table>
+      </div>`).join('');
+  }
+
+  // set_value / toggle — แสดง updated
+  if (result.updated) {
+    return `<div style="margin-top:10px;font-size:13px;color:#22c55e;">✓ อัปเดต: ${result.updated.join(', ')}</div>`;
+  }
+
+  // get_report
+  if (result.logs) {
+    return `<div style="margin-top:10px;font-size:13px;color:#888;">พบ ${result.total} รายการ</div>`;
+  }
+
+  return '';
+}
+
+function renderResult(cmd, data) {
+  const p = data.parsed || {};
+  const conf = Math.round((p.confidence || 0.9) * 100);
+  const actionMap = { set_value:'ตั้งค่า', toggle_device:'เปิด/ปิด', get_status:'ดูสถานะ', get_report:'รายงาน' };
+
+  document.getElementById('resultPanel').innerHTML = `
+    <div class="result-card">
+      <div class="result-input">คำสั่ง: <span>"${esc(cmd)}"</span></div>
+      <div class="tags">
+        <span class="tag tag-action">${actionMap[p.action] || p.action}</span>
+        ${(p.targets||[]).map(t=>`<span class="tag tag-target">${t}</span>`).join('')}
+        ${p.parameters?.field ? `<span class="tag tag-param">${p.parameters.field}=${p.parameters.value ?? p.parameters.state ?? ''}</span>` : ''}
+      </div>
+      <div class="conf-row">
+        <span class="conf-label">ความมั่นใจ</span>
+        <div class="conf-bar"><div class="conf-fill" style="width:${conf}%"></div></div>
+        <span class="conf-val">${conf}%</span>
+      </div>
+      <div class="response-text">${data.response_th || 'ดำเนินการเสร็จสิ้น'}</div>
+      ${renderResultData(data.result)}
+    </div>`;
+}
+
+function addLog(cmd, data) {
+  const ts = new Date().toLocaleTimeString('th-TH', {hour12:false});
+  logs.unshift({ ts, cmd, ok: data.success, action: data.parsed?.action, targets: (data.parsed?.targets||[]).join(', ') });
+  document.getElementById('logCount').textContent = `${logs.length} รายการ`;
+  document.getElementById('logPanel').innerHTML = logs.slice(0,30).map(l => `
+    <div class="log-item">
+      <div class="log-top">
+        <span class="log-time">${l.ts}</span>
+        <span class="log-cmd">${esc(l.cmd)}</span>
+        <span class="${l.ok ? 'log-ok' : 'log-err'}">${l.ok ? '✓' : '✗'}</span>
+      </div>
+      <div class="log-sub">${l.action || '?'} · ${l.targets || '-'}</div>
+    </div>`).join('');
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+loadCameras();
+setInterval(loadCameras, 15000);
+</script>
+</body>
+</html>

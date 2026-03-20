@@ -22,8 +22,8 @@ from pydantic import BaseModel, Field, ConfigDict
 from bson import ObjectId
 from bson.errors import InvalidId
 
-client = MongoClient("mongodb://localhost:27017")
-#client = MongoClient("mongodb://root:example@localhost:27017/?authSource=admin")
+#client = MongoClient("mongodb://localhost:27017")
+client = MongoClient("mongodb://root:example@localhost:27017/?authSource=admin")
 db = client["ai_login"]
 collection_users = db["users"]
 collection_location = db["location"]
