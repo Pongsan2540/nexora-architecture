@@ -1731,3 +1731,58 @@ html,body{height:100%;background:var(--bg);color:var(--t0);font-family:'Inter',s
   opacity: 1;
   transform: translateY(-1px);
 }
+
+
+
+
+
+/* ── Image Upload Zone (matches .inp style) ── */
+.upload-zone {
+  position: relative;
+  width: 100%;
+  min-height: 68px;
+  border: 1px dashed var(--bd-hi);
+  border-radius: 6px;
+  background: rgba(255,255,255,0.04);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 160ms, background 160ms;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+.upload-zone:hover { border-color: rgba(138,126,110,0.5); background: rgba(138,126,110,0.06); }
+.upload-zone.drag-over { border-color: var(--c0a); background: var(--c0b); }
+.upload-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.upload-placeholder { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px; pointer-events: none; }
+.upload-ico { color: var(--t2); transition: color 160ms; }
+.upload-zone:hover .upload-ico,
+.upload-zone.drag-over .upload-ico { color: var(--c0a); }
+.upload-hint { font-size: 10px; color: var(--t2); text-align: center; line-height: 1.5; margin: 0; }
+.upload-hint em { font-style: normal; color: var(--c0a); text-decoration: underline; text-underline-offset: 2px; }
+.preview-wrap { position: relative; width: 100%; padding: 6px; box-sizing: border-box; }
+.preview-wrap img { width: 100%; max-height: 140px; object-fit: cover; border-radius: 5px; display: block; border: 1px solid var(--bd); }
+.preview-name { font-size: 9px; font-weight: 600; color: var(--t2); text-align: center; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.remove-btn {
+  position: absolute; top: 10px; right: 10px;
+  width: 18px; height: 18px; border-radius: 4px;
+  background: var(--card); border: 1px solid var(--bd-hi);
+  color: var(--t2); cursor: pointer; display: flex;
+  align-items: center; justify-content: center; font-size: 9px; line-height: 1;
+  transition: color 150ms, border-color 150ms;
+}
+.remove-btn:hover { color: var(--t0); border-color: rgba(154,116,104,0.4); }
+
+/* ── mutual exclusive disabled states ── */
+.upload-zone.upload-disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.inp-disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+  user-select: none;
+}

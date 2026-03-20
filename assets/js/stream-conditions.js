@@ -1535,7 +1535,35 @@ function renderStats() {
           </label>
           <input class="inp" id="edit-config-prompt" value="${escapeHtml(item.config_prompt ?? '')}" placeholder="Ex : The man is refueling his car.">
         </div>
-        
+
+        <div>
+          <label class="stat-name">
+            <span class="tri-down">
+              <svg viewBox="0 0 10 6" width="9" height="6">
+                <path d="M1 1 L5 5 L9 1" stroke="#8a7e6e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+              </svg>
+            </span>
+            Images Upload
+          </label>
+          <div class="upload-zone" id="upload-zone">
+            <input type="file" id="edit-config-image" accept="image/*">
+            <div class="upload-placeholder" id="upload-placeholder">
+              <svg class="upload-ico" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="3"/>
+                <circle cx="8.5" cy="8.5" r="1.5"/>
+                <path d="M21 15l-5-5L5 21"/>
+              </svg>
+              <p class="upload-hint">Drop or <em>browse</em> · PNG JPG WEBP</p>
+            </div>
+            <div id="preview-container" class="preview-wrap" style="display:none;">
+              <img id="preview-img" src="" alt="preview">
+              <p id="preview-name" class="preview-name"></p>
+              <button class="remove-btn" id="remove-btn" type="button">✕</button>
+            </div>
+          </div>
+        </div>
+
         <div>
           <label class="stat-name">
             <span class="tri-down">
@@ -1686,6 +1714,89 @@ function renderStats() {
       </div>
     </div>
   `;
+
+  bindUploadZone();
+}
+
+function bindUploadZone() {
+  const zone        = document.getElementById('upload-zone');
+  const input       = document.getElementById('edit-config-image');
+  const placeholder = document.getElementById('upload-placeholder');
+  const previewCont = document.getElementById('preview-container');
+  const previewImg  = document.getElementById('preview-img');
+  const previewName = document.getElementById('preview-name');
+  const removeBtn   = document.getElementById('remove-btn');
+  const textPrompt  = document.getElementById('edit-config-prompt');
+
+  if (!zone || !input) return;
+
+  // ── mutual exclusive helpers ──────────────────────────────
+  function disableZone() {
+    zone.classList.add('upload-disabled');
+    zone.querySelector('input[type="file"]').disabled = true;
+  }
+  function enableZone() {
+    zone.classList.remove('upload-disabled');
+    zone.querySelector('input[type="file"]').disabled = false;
+  }
+  function disableText() {
+    textPrompt.disabled = true;
+    textPrompt.classList.add('inp-disabled');
+  }
+  function enableText() {
+    textPrompt.disabled = false;
+    textPrompt.classList.remove('inp-disabled');
+  }
+
+  // sync state on init (e.g. existing value loaded)
+  if (textPrompt && textPrompt.value.trim()) disableZone();
+
+  function showPreview(file) {
+    if (previewImg._prevUrl) URL.revokeObjectURL(previewImg._prevUrl);
+    const url = URL.createObjectURL(file);
+    previewImg._prevUrl = url;
+    previewImg.src = url;
+    previewName.textContent = file.name;
+    placeholder.style.display = 'none';
+    previewCont.style.display  = 'block';
+    // image chosen → lock text
+    disableText();
+  }
+  function clearPreview() {
+    if (previewImg._prevUrl) URL.revokeObjectURL(previewImg._prevUrl);
+    previewImg.src = '';
+    previewName.textContent = '';
+    placeholder.style.display = 'flex';
+    previewCont.style.display  = 'none';
+    input.value = '';
+    // image cleared → unlock text
+    enableText();
+  }
+
+  // text prompt typing → lock/unlock zone
+  if (textPrompt) {
+    textPrompt.addEventListener('input', () => {
+      if (textPrompt.value.trim()) {
+        disableZone();
+      } else {
+        enableZone();
+      }
+    });
+  }
+
+  input.addEventListener('change', () => { if (input.files[0]) showPreview(input.files[0]); });
+  removeBtn.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); clearPreview(); });
+  zone.addEventListener('dragover',  e => {
+    if (zone.classList.contains('upload-disabled')) return;
+    e.preventDefault(); zone.classList.add('drag-over');
+  });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+  zone.addEventListener('drop', e => {
+    if (zone.classList.contains('upload-disabled')) return;
+    e.preventDefault(); zone.classList.remove('drag-over');
+    const f = e.dataTransfer.files[0];
+    if (f?.type.startsWith('image/')) showPreview(f);
+  });
 }
 
 function formatBool(v){
@@ -1976,6 +2087,7 @@ function switchStream(idx) {
   const url = idx === 0 ? cam.hls : (cam.hls_sub || cam.hls);
   connectHLS(url);
 }
+
 
 window.switchStream = switchStream;
 
