@@ -56,19 +56,81 @@ bgR();window.addEventListener('resize',bgR);
 (function bgLoop(){bgX.clearRect(0,0,bW,bH);const a=(dark?0.045:0.06)*bgM;bgX.save();bgX.strokeStyle=dark?`rgba(200,196,188,${a})`:`rgba(30,28,22,${a})`;bgX.lineWidth=0.4;for(let x=0;x<=bW;x+=GS){bgX.beginPath();bgX.moveTo(x,0);bgX.lineTo(x,bH);bgX.stroke();}for(let y=0;y<=bH;y+=GS){bgX.beginPath();bgX.moveTo(0,y);bgX.lineTo(bW,y);bgX.stroke();}bgX.restore();const now=Date.now()-T0;bgX.save();CELLS.forEach(cell=>{const age=now-cell.delay;if(age<0)return;const c=(age%4200)/4200;let f=c<0.05?c/0.05:c<0.18?1-(c-0.05)/0.13:0;if(cell.boost>0){f=Math.max(f,cell.boost);cell.boost*=0.96;}f*=bgM;if(f<0.01)return;const x=cell.col*GS,y=cell.row*GS;bgX.fillStyle=dark?`rgba(210,205,195,${f*0.025})`:`rgba(30,28,24,${f*0.02})`;bgX.fillRect(x,y,GS,GS);const da=f*0.12;bgX.fillStyle=dark?`rgba(210,205,195,${da})`:`rgba(30,28,24,${da})`;[[x,y],[x+GS,y],[x,y+GS],[x+GS,y+GS]].forEach(([cx,cy])=>{bgX.beginPath();bgX.arc(cx,cy,1.1,0,Math.PI*2);bgX.fill();});});bgX.restore();requestAnimationFrame(bgLoop);})();
 function ripple(ox,oy){bgM=3;setTimeout(()=>bgM=2.2,300);setTimeout(()=>bgM=1.6,750);setTimeout(()=>bgM=1,1600);CELLS.forEach(cell=>{const d=Math.hypot(cell.col*GS-ox,cell.row*GS-oy);setTimeout(()=>{cell.boost=Math.max(0,1-d/580)*1.1;},d*0.55);});}
 
-/* NODE GRAPH */
-const gC=document.getElementById('gCanvas'),gX=gC.getContext('2d');
-let GN=[],GE=[],gRAF=null,gDrag=null,gDx=0,gDy=0;
-const NC={query:'#8a7e6e',concept:'#6a7a68',source:'rgba(138,126,110,.6)',answer:'#c0b890'};
-const NR={query:24,concept:17,source:12,answer:20};
-function gResize(){gC.width=gC.offsetWidth*DPR;gC.height=gC.offsetHeight*DPR;gX.setTransform(DPR,0,0,DPR,0,0);}
-function mkN(id,lb,type,x,y){return{id,lb,type,x,y,r:NR[type]||14,color:NC[type]||'#8a7e6e',alpha:0,ta:1};}
-function initGraph(){GN=[];GE=[];const W=gC.offsetWidth,H=gC.offsetHeight;GN.push(mkN('idle','Ask anything…','query',W/2,H/2));startGDraw();}
-function buildGraph(q,concepts,sources){if(gRAF){cancelAnimationFrame(gRAF);gRAF=null;}GN=[];GE=[];const W=gC.offsetWidth,H=gC.offsetHeight,cx=W/2,cy=H*0.38;GN.push(mkN('q',q.length>22?q.slice(0,20)+'…':q,'query',cx,cy));concepts.forEach((c,i)=>{const ang=(i/concepts.length)*Math.PI*2-Math.PI/2,r=92+Math.random()*14;GN.push(mkN('c'+i,c,'concept',cx+Math.cos(ang)*r,cy+Math.sin(ang)*r));GE.push({a:'q',b:'c'+i,alpha:0,ta:.36,delay:i*105+160});});sources.forEach((s,i)=>{const ang=(i/sources.length)*Math.PI*2+0.3,r=160+Math.random()*18;GN.push(mkN('s'+i,s.length>11?s.slice(0,10)+'…':s,'source',cx+Math.cos(ang)*r,cy+Math.sin(ang)*r));GE.push({a:'c'+(i%concepts.length),b:'s'+i,alpha:0,ta:.2,delay:i*85+420});});setTimeout(()=>{GN.push(mkN('ans','Answer','answer',cx,cy+138));GE.push({a:'q',b:'ans',alpha:0,ta:.62,delay:0});},1250);startGDraw();}
-function startGDraw(){if(gRAF)cancelAnimationFrame(gRAF);function loop(){if(!gC.offsetWidth){gRAF=requestAnimationFrame(loop);return;}gResize();const W=gC.offsetWidth,H=gC.offsetHeight;gX.clearRect(0,0,W,H);GE.forEach(e=>{e.alpha+=(e.ta-e.alpha)*0.055;const fn=GN.find(n=>n.id===e.a),tn=GN.find(n=>n.id===e.b);if(!fn||!tn||e.alpha<0.01)return;gX.save();gX.strokeStyle=dark?`rgba(138,126,110,${e.alpha})`:`rgba(90,82,74,${e.alpha})`;gX.lineWidth=1;gX.setLineDash([3,5]);gX.beginPath();gX.moveTo(fn.x,fn.y);gX.lineTo(tn.x,tn.y);gX.stroke();gX.restore();});GN.forEach(n=>{n.alpha+=(n.ta-n.alpha)*0.065;if(n.alpha<0.01)return;gX.save();gX.globalAlpha=n.alpha;const g=gX.createRadialGradient(n.x,n.y,0,n.x,n.y,n.r*2.6);g.addColorStop(0,dark?`rgba(138,126,110,${n.alpha*.2})`:`rgba(138,126,110,${n.alpha*.14})`);g.addColorStop(1,'rgba(0,0,0,0)');gX.fillStyle=g;gX.beginPath();gX.arc(n.x,n.y,n.r*2.6,0,Math.PI*2);gX.fill();gX.fillStyle=dark?'rgba(18,16,14,.92)':'rgba(238,236,232,.92)';gX.beginPath();gX.arc(n.x,n.y,n.r,0,Math.PI*2);gX.fill();gX.strokeStyle=n.color;gX.lineWidth=1.8;gX.setLineDash([]);gX.stroke();gX.fillStyle=dark?`rgba(226,221,214,${n.alpha})`:`rgba(26,24,22,${n.alpha})`;const fs=n.type==='query'?11:9;gX.font=`${n.type==='query'?700:600} ${fs}px Inter,sans-serif`;gX.textAlign='center';if(n.type==='query'||n.type==='answer'){gX.textBaseline='middle';gX.fillText(n.lb,n.x,n.y);}else{gX.textBaseline='top';gX.fillText(n.lb,n.x,n.y+n.r+5);}gX.restore();});gRAF=requestAnimationFrame(loop);}gRAF=requestAnimationFrame(loop);}
-gC.addEventListener('mousedown',e=>{const r=gC.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;gDrag=GN.find(n=>Math.hypot(n.x-mx,n.y-my)<n.r+10)||null;if(gDrag){gDx=mx-gDrag.x;gDy=my-gDrag.y;}});
-gC.addEventListener('mousemove',e=>{if(!gDrag)return;const r=gC.getBoundingClientRect();gDrag.x=e.clientX-r.left-gDx;gDrag.y=e.clientY-r.top-gDy;});
-gC.addEventListener('mouseup',()=>gDrag=null);
+/* ═══ CAMERA DASHBOARD ═══ */
+const API_BASE = 'http://localhost:8001';
+const CAM_API = `${API_BASE}/nexora/api/listCam`;
+
+let camData = [];
+
+async function fetchCameras() {
+  const btn = document.getElementById('camRefresh');
+  const list = document.getElementById('camList');
+  const footer = document.getElementById('camFooter');
+  btn.classList.add('spinning');
+  list.innerHTML = `<div class="cam-loading"><div class="cam-spinner"></div><span>Loading cameras…</span></div>`;
+  document.getElementById('statTotal').textContent = '—';
+  document.getElementById('statOnline').textContent = '—';
+  document.getElementById('statOffline').textContent = '—';
+
+  try {
+  const res = await fetch(`${API_BASE}/nexora/api/listCam`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' }
+  });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const raw = await res.json();
+    camData = raw;
+    renderCameras(camData);
+  } catch (err) {
+    console.warn('[Camera] fetch failed:', err.message);
+    list.innerHTML = `<div class="cam-error">ไม่สามารถเชื่อมต่อ API ได้<br>${err.message}</div>`;
+    footer.textContent = 'Connection failed';
+  } finally {
+    btn.classList.remove('spinning');
+  }
+}
+
+function renderCameras(cameras) {
+  const list = document.getElementById('camList');
+  const footer = document.getElementById('camFooter');
+  const online = cameras.filter(c => c.hls && c.hls.trim() !== '');
+  const offline = cameras.filter(c => !c.hls || c.hls.trim() === '');
+
+  document.getElementById('statTotal').textContent = cameras.length;
+  document.getElementById('statOnline').textContent = online.length;
+  document.getElementById('statOffline').textContent = offline.length;
+
+  list.innerHTML = '';
+  [...online, ...offline].forEach((cam, i) => {
+    const isOn = cam.hls && cam.hls.trim() !== '';
+    const item = document.createElement('div');
+    item.className = `cam-item ${isOn ? 'is-online' : 'is-offline'}`;
+    item.style.animationDelay = `${i * 45}ms`;
+    item.innerHTML = `
+      <div class="cam-dot"></div>
+      <div class="cam-info">
+        <div class="cam-name">${cam.name_cam || cam.id_cam || 'Unnamed'}</div>
+        <div class="cam-sub">
+          <span>${cam.id_cam || ''}</span>
+          ${cam.type_event ? `<span class="cam-type-badge">${cam.type_event}</span>` : ''}
+          ${cam.name ? `<span>· ${cam.name}</span>` : ''}
+        </div>
+      </div>
+      <div class="cam-status-lbl">${isOn ? 'Online' : 'Offline'}</div>
+    `;
+    list.appendChild(item);
+  });
+
+  if (cameras.length === 0) {
+    list.innerHTML = `<div class="cam-error">No cameras found.</div>`;
+  }
+  footer.textContent = `Updated ${new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`;
+}
+
+document.getElementById('camRefresh').addEventListener('click', fetchCameras);
+/* setInterval(fetchCameras, 30_000); */
+
+function buildGraph(q, concepts, sources) {}
 
 /* ═══ CHAT LOGIC ═══ */
 const iinput=document.getElementById('iinput'),ibtn=document.getElementById('ibtn');
@@ -96,6 +158,14 @@ async function doSearch(){
   const q=iinput.value.trim();if(!q)return;
   busy=true;
   iinput.value='';iinput.style.height='auto';ibtn.classList.remove('vis');
+
+
+  console.log("currentMode:", currentMode);
+
+  console.log("modeTrack:", modeTrack);
+  console.log("modeLblSearch:", modeLblSearch.textContent);
+  console.log("modeLblManager:", modeLblManager.textContent);
+
 
   if(firstMsg){
     emptyState.style.transition='opacity 280ms,transform 280ms';
@@ -189,7 +259,48 @@ function addTimeline(q,html,entryId){
     tlWrap.appendChild(div);
   });
 }
-window.toggleRight=function(){const r=document.getElementById('rightPanel'),s=document.querySelector('.split');r.classList.toggle('collapsed');const collapsed=r.classList.contains('collapsed');s.style.gridTemplateColumns=collapsed?'1fr 42px':'1fr 340px';setTimeout(()=>{gResize();},290);};
+
+window.toggleRight = function() {
+  const r = document.querySelector('.right');
+  const s = document.querySelector('.split');
+  r.classList.toggle('collapsed');
+  const collapsed = r.classList.contains('collapsed');
+  s.style.gridTemplateColumns = collapsed ? '1fr 42px' : '1fr 340px';
+};
+
 window.rswitch=function(tab){document.getElementById('tg').classList.toggle('on',tab==='graph');document.getElementById('tt').classList.toggle('on',tab==='timeline');document.getElementById('pg').classList.toggle('on',tab==='graph');document.getElementById('pt').classList.toggle('on',tab==='timeline');};
-window.addEventListener('load',()=>{gResize();initGraph();startGDraw();});
-window.addEventListener('resize',()=>{gResize();bgR();});
+window.addEventListener('load', fetchCameras);
+window.addEventListener('resize', bgR);
+
+
+
+
+/* ═══ MODE TOGGLE ═══ */
+let currentMode = 'search';
+const modeTrack = document.getElementById('modeTrack');
+const modeLblSearch = document.getElementById('modeLblSearch');
+const modeLblManager = document.getElementById('modeLblManager');
+
+console.log("modeTrack:", modeTrack);
+console.log("modeLblSearch:", modeLblSearch);
+console.log("modeLblManager:", modeLblManager);
+
+function setMode(mode) {
+  currentMode = mode;
+  if (mode === 'manager') {
+    modeTrack.classList.add('manager');
+    modeLblSearch.classList.remove('active');
+    modeLblManager.classList.add('active');
+    iinput.placeholder = 'สั่งงาน Manager…';
+  } else {
+    modeTrack.classList.remove('manager');
+    modeLblSearch.classList.add('active');
+    modeLblManager.classList.remove('active');
+    iinput.placeholder = 'พิมพ์ถามได้เลย…';
+  }
+}
+
+modeTrack.addEventListener('click', () => setMode(currentMode === 'search' ? 'manager' : 'search'));
+modeLblSearch.addEventListener('click', () => setMode('search'));
+modeLblManager.addEventListener('click', () => setMode('manager'));
+modeLblSearch.classList.add('active');

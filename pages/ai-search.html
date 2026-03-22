@@ -87,6 +87,15 @@
       </div>
     </div>
 
+    <!-- วางเหนือ <div class="input-bar"> -->
+    <div class="mode-toggle-wrap">
+      <span class="mode-lbl" id="modeLblSearch">Search Assistant</span>
+      <button class="mode-track" id="modeTrack" aria-label="Toggle mode">
+        <span class="mode-thumb"></span>
+      </button>
+      <span class="mode-lbl" id="modeLblManager">Manager Assistant</span>
+    </div>
+
     <div class="input-bar">
       <div class="ibox" id="ibox">
         <div class="irow">
@@ -102,19 +111,52 @@
 
   <div class="right">
     <div class="rtabs">
-      <div class="rtab on" id="tg" onclick="rswitch('graph')">🕸 Thought Web</div>
-      <div class="rtab" id="tt" onclick="rswitch('timeline')">🛤 Journey</div>
+      <div class="rtab on" id="tt" onclick="rswitch('timeline')">🛤 Journey</div>
+      <div class="rtab" id="tg" onclick="rswitch('graph')">🕸 Thought Web</div>
+      <button class="rpanel-toggle" onclick="toggleRight()">
+        <svg class="toggle-icon-close" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,18 15,12 9,6"/></svg>
+        <svg class="toggle-icon-open" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15,18 9,12 15,6"/></svg>
+      </button>
     </div>
-    <div class="rpanel on" id="pg">
-      <canvas id="gCanvas"></canvas>
-      <div class="gleg">
-        <div class="gli"><div class="gld" style="background:#8a7e6e"></div>Query</div>
-        <div class="gli"><div class="gld" style="background:#6a7a68"></div>Concept</div>
-        <div class="gli"><div class="gld" style="background:rgba(138,126,110,.5)"></div>Source</div>
-        <div class="gli"><div class="gld" style="background:#c0b890"></div>Answer</div>
+    <div class="rpanel" id="pg">
+
+      <div class="cam-dashboard" id="camDashboard">
+        <div class="cam-header">
+          <div class="cam-header-left">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+            Camera Status
+          </div>
+          <button class="cam-refresh" id="camRefresh" title="Refresh">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          </button>
+        </div>
+        <div class="cam-summary" id="camSummary">
+          <div class="cam-stat-card">
+            <div class="cam-stat-num" id="statTotal">—</div>
+            <div class="cam-stat-lbl">Total</div>
+          </div>
+          <div class="cam-stat-card online">
+            <div class="cam-stat-num" id="statOnline">—</div>
+            <div class="cam-stat-lbl">Online</div>
+          </div>
+          <div class="cam-stat-card offline">
+            <div class="cam-stat-num" id="statOffline">—</div>
+            <div class="cam-stat-lbl">Offline</div>
+          </div>
+        </div>
+        <div class="cam-list-wrap">
+          <div class="cam-list" id="camList">
+            <div class="cam-loading" id="camLoading">
+              <div class="cam-spinner"></div>
+              <span>Loading cameras…</span>
+            </div>
+          </div>
+        </div>
+        <div class="cam-footer" id="camFooter"></div>
       </div>
+
     </div>
-    <div class="rpanel" id="pt">
+    <div class="rpanel on" id="pt">
       <div class="tl-wrap" id="tlWrap">
         <div class="tl-empty" id="tlEmpty">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
