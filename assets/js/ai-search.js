@@ -156,16 +156,51 @@ function getTimeStr(){return new Date().toLocaleTimeString('th-TH',{hour:'2-digi
 async function doSearch(){
   if(busy)return;
   const q=iinput.value.trim();if(!q)return;
+
+  console.log("iinput:", iinput.value);
+  console.log("currentMode:", currentMode);
+
+  let data;
+  try {
+    const q = iinput.value.trim();
+
+    const url = currentMode === "manager"
+      ? `${API_BASE}/nexora/api/dataSearch`
+      : `${API_BASE}/nexora/api/dataSearch`;
+
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        input: q,
+        mode: currentMode
+      })
+    });
+
+    if (!res.ok) throw new Error(`API error: ${res.status}`);
+
+    data = await res.json();
+
+    console.log("mode:", currentMode);
+    console.log("response:", data);
+
+  } catch (err) {
+    console.error("fetch error:", err);
+  }
+
+  const inputValue = data.message;
+
   busy=true;
   iinput.value='';iinput.style.height='auto';ibtn.classList.remove('vis');
 
 
-  console.log("currentMode:", currentMode);
-
+  /*
   console.log("modeTrack:", modeTrack);
   console.log("modeLblSearch:", modeLblSearch.textContent);
   console.log("modeLblManager:", modeLblManager.textContent);
-
+  */
 
   if(firstMsg){
     emptyState.style.transition='opacity 280ms,transform 280ms';
@@ -180,7 +215,7 @@ async function doSearch(){
 
   const ib=document.getElementById('ibox').getBoundingClientRect();
   ripple(ib.left+ib.width/2,ib.top+ib.height/2);
-  const resp=getMock(q);
+  const resp=getMock(inputValue);
   buildGraph(q,resp.concepts,resp.sources);
   const id=++entryCount;
 

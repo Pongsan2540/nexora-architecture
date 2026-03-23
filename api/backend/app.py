@@ -321,6 +321,23 @@ async def add_rule(data: RuleRequest):
 
 
 
+class Req(BaseModel):
+    input: str
+    mode: str
+
+@api.post("/dataSearch")
+async def search(req: Req):
+    print("input:", req.input)
+    print("mode:", req.mode)
+
+    message = "อย่ารอคอยโอกาส จงสร้างมัน"
+
+    return {
+        "input": req.input,
+        "mode": req.mode,
+        "message": message
+    }
+
 
 
 app.include_router(api)
