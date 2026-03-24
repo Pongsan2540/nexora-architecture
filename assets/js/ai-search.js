@@ -132,6 +132,9 @@ document.getElementById('camRefresh').addEventListener('click', fetchCameras);
 
 function buildGraph(q, concepts, sources) {}
 
+
+
+
 /* ═══ CHAT LOGIC ═══ */
 const iinput=document.getElementById('iinput'),ibtn=document.getElementById('ibtn');
 const feed=document.getElementById('feed'),feedInner=document.getElementById('feedInner');
@@ -154,8 +157,31 @@ document.querySelectorAll('.echip').forEach(c=>c.addEventListener('click',()=>{
 function getTimeStr(){return new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});}
 
 async function doSearch(){
+
   if(busy)return;
   const q=iinput.value.trim();if(!q)return;
+
+  /* ── FIRST VISIT DETECTION ── */
+  const FIRST_VISIT_KEY = 'nexora_search_visited';
+  let _firstVisitDone = false; // เพิ่มบรรทัดนี้
+
+  /* PAGE TRANSITION */
+  const veil=document.getElementById('pageVeil');
+
+  // const isFirstVisit = !localStorage.getItem(FIRST_VISIT_KEY);
+  // ใช้ sessionStorage — clear ทุกครั้งที่ปิด tab หรือ refresh
+  const isFirstVisit = !_firstVisitDone && !sessionStorage.getItem(FIRST_VISIT_KEY);
+
+  let user_search;
+  if (isFirstVisit) {
+    _firstVisitDone = true;
+    sessionStorage.setItem(FIRST_VISIT_KEY, '1');
+    console.log('👋 First visit!');
+    user_search = true;
+  } else {
+    console.log('🔁 Returning visitor');
+    user_search = false;
+  }
 
   console.log("iinput:", iinput.value);
   console.log("currentMode:", currentMode);
@@ -175,7 +201,8 @@ async function doSearch(){
       },
       body: JSON.stringify({
         input: q,
-        mode: currentMode
+        mode: currentMode,
+        user_search: user_search
       })
     });
 
@@ -290,7 +317,11 @@ function addTimeline(q,html,entryId){
     const div=document.createElement('div');
     div.className='tlit'+(i===0?' active':'');
     div.innerHTML=`<div class="tlln"><div class="tldt ${i>0?'m':''}"></div>${!isLast?'<div class="tlcn"></div>':''}</div><div class="tlbd"><div class="tlq">${item.q}</div><div class="tlmt">${item.t.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})}</div><div class="tlpv">${item.preview}</div></div>`;
-    div.addEventListener('click',()=>{tlWrap.querySelectorAll('.tlit').forEach(el=>el.classList.remove('active'));div.classList.add('active');const target=document.getElementById('entry-'+item.entryId);if(target)target.scrollIntoView({behavior:'smooth',block:'start'});rswitch('timeline');});
+    div.addEventListener('click',()=>{tlWrap.querySelectorAll('.tlit').forEach(el=>el.classList.remove('active'));div.classList.add('active');const target=document.getElementById('entry-'+item.entryId);if(target)target.scrollIntoView({behavior:'smooth',block:'start'});
+    rswitch('timeline');
+    sessionStorage.removeItem(FIRST_VISIT_KEY);
+    firstVisitDone = false;
+    });
     tlWrap.appendChild(div);
   });
 }
@@ -339,3 +370,7 @@ modeTrack.addEventListener('click', () => setMode(currentMode === 'search' ? 'ma
 modeLblSearch.addEventListener('click', () => setMode('search'));
 modeLblManager.addEventListener('click', () => setMode('manager'));
 modeLblSearch.classList.add('active');
+
+window.addEventListener('beforeunload', () => {
+  sessionStorage.removeItem(FIRST_VISIT_KEY);
+});

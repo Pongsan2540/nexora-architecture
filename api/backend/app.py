@@ -6,8 +6,8 @@ from pymongo import MongoClient
 from pprint import pprint
 from pydantic import BaseModel
 
-client = MongoClient("mongodb://localhost:27017")
-#client = MongoClient("mongodb://root:example@localhost:27017/?authSource=admin")
+#client = MongoClient("mongodb://localhost:27017")
+client = MongoClient("mongodb://root:example@localhost:27017/?authSource=admin")
 db = client["ai_login"]
 collection_users = db["users"]
 collection_location = db["location"]
@@ -16,6 +16,7 @@ collection_event = db["event"]
 collection_prompt = db["ai-prompt"]
 collection_prompt_all = db["ai-prompt-all"]
 
+collection_history_search = db["history"]
 
 API_PREFIX = "/nexora/api"
 
@@ -135,7 +136,7 @@ async def list_events():
             "hls": i.get("hls"),
         }
         cameras.append(cam)
-    pprint(cameras)
+    #pprint(cameras)
     return cameras
 
 
@@ -217,7 +218,7 @@ async def list_setting(id_cam: Optional[str] = Query(default=None)):
             d["_id"] = str(d["_id"])
             result.append(d)
 
-        print(result)
+        #print(result)
 
     return result
 
@@ -280,7 +281,7 @@ async def update_setting(payload: UpdateSettingPayload):
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="setting not found")
  
-    pprint(update_fields)
+    #pprint(update_fields)
 
     return {
         "ok": True,
@@ -320,24 +321,91 @@ async def add_rule(data: RuleRequest):
     }
 
 
+from datetime import datetime
+from bson import ObjectId
 
 class Req(BaseModel):
     input: str
     mode: str
+    user_search: bool   # 👈 เปลี่ยนเป็น bool
 
 @api.post("/dataSearch")
 async def search(req: Req):
-    print("input:", req.input)
-    print("mode:", req.mode)
+
+    timestamp_input = datetime.now() 
+
+    user_search = req.user_search
+    input_search = req.input
 
     message = "อย่ารอคอยโอกาส จงสร้างมัน"
+    timestamp_output = datetime.now() 
+
+    data_json = {
+                    "input": input_search,
+                    "mode": req.mode,
+                    "user_search": user_search,
+                    "message": message
+                }
+    
+    list_search_input = {
+        "type_search": req.mode,
+        "text": input_search,
+        "image": None, 
+        "time_search": timestamp_input,
+        "type_message": "input",
+        "tag": {}
+    }
+
+    list_search_output = {
+        "type_search": req.mode,
+        "text": message,
+        "image": None, 
+        "time_search": timestamp_output,
+        "type_message": "output",
+        "tag": {}
+    }
+
+
+    print('----', user_search)
+
+    list_data = []
+    if user_search == True :
+        name_title = input_search
+        record_time = timestamp_input
+        list_data.append(list_search_input)
+        list_data.append(list_search_output)
+
+        search_data = {
+            "time_stamp": record_time,
+            "name_title": name_title,
+            "list_data": list_data
+        }
+        
+        pprint(search_data)
+
+        result = collection_history_search.insert_one(search_data)
+        print("Inserted ID:", result.inserted_id)
+    else:
+        list_data.append(list_search_input)
+        list_data.append(list_search_output)
+
+        collection_history_search.update_one(
+            {"_id": ObjectId("69c23f42492db5e04a9d53a5")},
+            {
+                "$push": {
+                    "list_data": {
+                        "$each": list_data
+                    }
+                }
+            }
+        )
 
     return {
         "input": req.input,
         "mode": req.mode,
+        "user_search": req.user_search,
         "message": message
     }
-
 
 
 app.include_router(api)
