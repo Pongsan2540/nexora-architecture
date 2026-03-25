@@ -115,7 +115,6 @@
     <div class="rtabs">
       <div class="rtab on" id="tt" onclick="rswitch('timeline')">🛤 Journey</div>
       <div class="rtab" id="tg" onclick="rswitch('graph')">🕸 Thought Web</div>
-      <div class="rtab" id="th" onclick="rswitch('history')">🕘 History</div>
       <button class="rpanel-toggle" onclick="toggleRight()">
         <svg class="toggle-icon-close" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,18 15,12 9,6"/></svg>
         <svg class="toggle-icon-open" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15,18 9,12 15,6"/></svg>
@@ -164,24 +163,6 @@
         <div class="tl-empty" id="tlEmpty">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
           Your search journey<br>will appear here
-        </div>
-      </div>
-    </div>
-
-    <!-- HISTORY PANEL -->
-    <div class="rpanel" id="ph">
-      <div class="hist-toolbar">
-        <span class="hist-title">Search History</span>
-        <button class="hist-refresh" id="histRefresh" title="Refresh">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-        </button>
-      </div>
-      <div class="hist-list-wrap">
-        <div class="hist-list" id="histList">
-          <div class="hist-loading" id="histLoading">
-            <div class="cam-spinner"></div>
-            <span>Loading history…</span>
-          </div>
         </div>
       </div>
     </div>

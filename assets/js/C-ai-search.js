@@ -334,127 +334,14 @@ window.toggleRight = function() {
   s.style.gridTemplateColumns = collapsed ? '1fr 42px' : '1fr 340px';
 };
 
-window.rswitch=function(tab){
-  document.getElementById('tg').classList.toggle('on',tab==='graph');
-  document.getElementById('tt').classList.toggle('on',tab==='timeline');
-  document.getElementById('th').classList.toggle('on',tab==='history');
-  document.getElementById('pg').classList.toggle('on',tab==='graph');
-  document.getElementById('pt').classList.toggle('on',tab==='timeline');
-  document.getElementById('ph').classList.toggle('on',tab==='history');
-  if(tab==='history') fetchHistory();
-};
+window.rswitch=function(tab){document.getElementById('tg').classList.toggle('on',tab==='graph');document.getElementById('tt').classList.toggle('on',tab==='timeline');document.getElementById('pg').classList.toggle('on',tab==='graph');document.getElementById('pt').classList.toggle('on',tab==='timeline');};
 window.addEventListener('load', fetchCameras);
 window.addEventListener('resize', bgR);
 
 
 
 
-/* ═══ HISTORY ═══ */
-const HISTORY_API = `${API_BASE}/nexora/api/history`;
-let historyLoaded = false;
-
-async function fetchHistory(force = false) {
-  if (historyLoaded && !force) return;
-  const list = document.getElementById('histList');
-  const btn = document.getElementById('histRefresh');
-  if (btn) btn.classList.add('spinning');
-  list.innerHTML = `<div class="hist-loading"><div class="cam-spinner"></div><span>Loading history…</span></div>`;
-
-  try {
-    const res = await fetch(HISTORY_API, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' }
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    historyLoaded = true;
-    renderHistory(data);
-  } catch (err) {
-    console.warn('[History] fetch failed:', err.message);
-    list.innerHTML = `<div class="hist-error">ไม่สามารถโหลด history ได้<br><span>${err.message}</span></div>`;
-  } finally {
-    if (btn) btn.classList.remove('spinning');
-  }
-}
-
-function renderHistory(sessions) {
-  const list = document.getElementById('histList');
-  if (!sessions || sessions.length === 0) {
-    list.innerHTML = `<div class="hist-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg><span>ยังไม่มีประวัติการค้นหา</span></div>`;
-    return;
-  }
-
-  list.innerHTML = '';
-  /* เรียงจากใหม่ไปเก่า */
-  const sorted = [...sessions].sort((a, b) => new Date(b.time_stamp) - new Date(a.time_stamp));
-
-  sorted.forEach((session, si) => {
-    const wrap = document.createElement('div');
-    wrap.className = 'hist-session';
-    wrap.style.animationDelay = `${si * 40}ms`;
-
-    const ts = session.time_stamp ? new Date(session.time_stamp) : null;
-    const tsStr = ts ? ts.toLocaleString('th-TH', { day: 'numeric', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
-
-    /* หา first user input สำหรับ preview */
-    const firstInput = (session.list_data || []).find(m => m.type_message === 'input');
-    const previewText = firstInput ? firstInput.text : session.name_title || '—';
-
-    /* นับ pairs */
-    const pairCount = (session.list_data || []).filter(m => m.type_message === 'input').length;
-
-    wrap.innerHTML = `
-      <div class="hist-session-header" onclick="toggleHistSession(this)">
-        <div class="hist-session-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
-        </div>
-        <div class="hist-session-info">
-          <div class="hist-session-title">${escHtml(previewText)}</div>
-          <div class="hist-session-meta">
-            <span class="hist-session-time">${tsStr}</span>
-            <span class="hist-session-count">${pairCount} คำถาม</span>
-          </div>
-        </div>
-        <svg class="hist-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6,9 12,15 18,9"/></svg>
-      </div>
-      <div class="hist-messages" style="display:none;">
-        ${buildHistMessages(session.list_data || [])}
-      </div>
-    `;
-    list.appendChild(wrap);
-  });
-}
-
-function buildHistMessages(msgs) {
-  if (!msgs.length) return '<div class="hist-no-msg">ไม่มีข้อความ</div>';
-  return msgs.map(m => {
-    const isInput = m.type_message === 'input';
-    const t = m.time_search ? new Date(m.time_search).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) : '';
-    return `<div class="hist-msg ${isInput ? 'hist-msg-in' : 'hist-msg-out'}">
-      <div class="hist-msg-role">${isInput ? '👤 คุณ' : '⚡ Nexora'}</div>
-      <div class="hist-msg-text">${escHtml(m.text || '')}</div>
-      ${t ? `<div class="hist-msg-time">${t}</div>` : ''}
-    </div>`;
-  }).join('');
-}
-
-function escHtml(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
-window.toggleHistSession = function(header) {
-  const msgs = header.nextElementSibling;
-  const chevron = header.querySelector('.hist-chevron');
-  const isOpen = msgs.style.display !== 'none';
-  msgs.style.display = isOpen ? 'none' : 'flex';
-  chevron.style.transform = isOpen ? '' : 'rotate(180deg)';
-  header.closest('.hist-session').classList.toggle('open', !isOpen);
-};
-
-document.getElementById('histRefresh').addEventListener('click', () => fetchHistory(true));
-
-
-
+/* ═══ MODE TOGGLE ═══ */
 let currentMode = 'search';
 const modeTrack = document.getElementById('modeTrack');
 const modeLblSearch = document.getElementById('modeLblSearch');

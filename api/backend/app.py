@@ -6,8 +6,8 @@ from pymongo import MongoClient
 from pprint import pprint
 from pydantic import BaseModel
 
-#client = MongoClient("mongodb://localhost:27017")
-client = MongoClient("mongodb://root:example@localhost:27017/?authSource=admin")
+client = MongoClient("mongodb://localhost:27017")
+#client = MongoClient("mongodb://root:example@localhost:27017/?authSource=admin")
 db = client["ai_login"]
 collection_users = db["users"]
 collection_location = db["location"]
@@ -17,6 +17,7 @@ collection_prompt = db["ai-prompt"]
 collection_prompt_all = db["ai-prompt-all"]
 
 collection_history_search = db["history"]
+
 
 API_PREFIX = "/nexora/api"
 
@@ -390,7 +391,7 @@ async def search(req: Req):
         list_data.append(list_search_output)
 
         collection_history_search.update_one(
-            {"_id": ObjectId("69c23f42492db5e04a9d53a5")},
+            {"_id": ObjectId("69c40740274442923ce2112e")},
             {
                 "$push": {
                     "list_data": {
@@ -406,6 +407,158 @@ async def search(req: Req):
         "user_search": req.user_search,
         "message": message
     }
+
+
+
+
+
+from fastapi import FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
+from pymongo import MongoClient, DESCENDING
+from pymongo.errors import ConnectionFailure
+from bson import ObjectId
+from bson.errors import InvalidId
+from datetime import datetime, timezone
+from typing import Optional
+import os
+
+
+# ─── HELPERS ───────────────────────────────────────────────────────────────────
+def to_str_id(doc: dict) -> dict:
+    """Convert ObjectId → string so JSON serialisation works."""
+    if doc and "_id" in doc:
+        doc["_id"] = str(doc["_id"])
+    return doc
+ 
+def parse_oid(id_str: str) -> ObjectId:
+    try:
+        return ObjectId(id_str)
+    except (InvalidId, TypeError):
+        raise HTTPException(status_code=400, detail=f"Invalid id: '{id_str}'")
+ 
+def now_utc() -> datetime:
+    return datetime.now(timezone.utc)
+ 
+# ─── ROUTES ────────────────────────────────────────────────────────────────────
+ 
+# ── Health check ───────────────────────────────────────────────────────────────
+@app.get(f"{API_PREFIX}/health")
+def health():
+    return {"status": "ok", "time": now_utc().isoformat()}
+ 
+ 
+# ── GET all sessions ───────────────────────────────────────────────────────────
+@app.get(f"{API_PREFIX}/history")
+def list_history(
+    limit: int  = Query(default=50,  ge=1, le=500,  description="Max sessions to return"),
+    skip:  int  = Query(default=0,   ge=0,            description="Offset for pagination"),
+    name:  Optional[str] = Query(default=None,        description="Filter by name_title (partial match)"),
+):
+    """
+    Return all history sessions, newest first.
+    Optional ?name=xxx for title search.
+    """
+    query: dict = {}
+    if name:
+        query["name_title"] = {"$regex": name, "$options": "i"}
+ 
+    cursor = (
+        collection_history_search.find(query)
+           .sort("time_stamp", DESCENDING)
+           .skip(skip)
+           .limit(limit)
+    )
+    docs = [to_str_id(doc) for doc in cursor]
+    return docs
+ 
+ 
+# ── GET single session ─────────────────────────────────────────────────────────
+@app.get(f"{API_PREFIX}/history/{{session_id}}")
+def get_session(session_id: str):
+    """Return one session by its MongoDB _id."""
+    doc = collection_history_search.find_one({"_id": parse_oid(session_id)})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Session not found")
+    return to_str_id(doc)
+ 
+ 
+# ── POST create session ────────────────────────────────────────────────────────
+@app.post(f"{API_PREFIX}/history", status_code=201)
+def create_session(body: dict):
+    """
+    Create a new history session.
+ 
+    Expected body:
+    {
+      "name_title": "my session",
+      "list_data": [
+        {
+          "type_search": "search",
+          "text": "...",
+          "image": null,
+          "type_message": "input",   // "input" | "output"
+          "tag": {}
+        }
+      ]
+    }
+    """
+    name_title = body.get("name_title", "Untitled")
+    list_data  = body.get("list_data", [])
+ 
+    # stamp every message that has no time_search
+    ts = now_utc()
+    for msg in list_data:
+        if not msg.get("time_search"):
+            msg["time_search"] = ts
+ 
+    doc = {
+        "time_stamp": ts,
+        "name_title": name_title,
+        "list_data":  list_data,
+    }
+    result = collection_history_search.insert_one(doc)
+    return {"_id": str(result.inserted_id), "created": True}
+ 
+ 
+# ── PUT append messages ─────────────────────────────────────────────────────────
+@app.put(f"{API_PREFIX}/history/{{session_id}}")
+def append_messages(session_id: str, body: dict):
+    """
+    Append one or more messages to an existing session's list_data.
+ 
+    Expected body:
+    {
+      "list_data": [ { ...msg }, ... ]
+    }
+    """
+    oid      = parse_oid(session_id)
+    new_msgs = body.get("list_data", [])
+    if not new_msgs:
+        raise HTTPException(status_code=400, detail="list_data is empty")
+ 
+    ts = now_utc()
+    for msg in new_msgs:
+        if not msg.get("time_search"):
+            msg["time_search"] = ts
+ 
+    result = collection_history_search.update_one(
+        {"_id": oid},
+        {"$push": {"list_data": {"$each": new_msgs}}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Session not found")
+    return {"_id": session_id, "appended": len(new_msgs)}
+ 
+ 
+# ── DELETE session ─────────────────────────────────────────────────────────────
+@app.delete(f"{API_PREFIX}/history/{{session_id}}")
+def delete_session(session_id: str):
+    result = collection_history_search.delete_one({"_id": parse_oid(session_id)})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Session not found")
+    return {"_id": session_id, "deleted": True}
+ 
+
 
 
 app.include_router(api)
