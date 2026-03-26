@@ -304,16 +304,14 @@ html,body{height:100%;background:var(--bg);color:var(--t0);font-family:'Inter',s
 .hist-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:48px 16px;color:var(--t2);font-size:11px;font-style:italic;font-family:'Lora',serif;opacity:.55;text-align:center;line-height:1.6;}
 .hist-empty svg{width:28px;height:28px;opacity:.4;}
 
-/* Session card */
-.hist-session{border:1px solid var(--bd);border-radius:11px;background:var(--glass);overflow:hidden;animation:fadeUp 320ms ease both;transition:border-color 160ms;}
-.hist-session:hover{border-color:var(--bd-hi);}
-.hist-session.open{border-color:rgba(138,126,110,.28);}
-
-.hist-session-header{display:flex;align-items:center;gap:9px;padding:9px 11px;cursor:pointer;transition:background 140ms;}
-.hist-session-header:hover{background:rgba(255,255,255,.03);}
+/* Session card — clickable row (ไม่ใช่ accordion แล้ว) */
+.hist-session{display:flex;align-items:center;gap:9px;padding:9px 11px;border:1px solid var(--bd);border-radius:11px;background:var(--glass);cursor:pointer;animation:fadeUp 320ms ease both;transition:border-color 160ms,background 160ms,transform 120ms;}
+.hist-session:hover{border-color:var(--bd-hi);background:var(--glass2);transform:translateX(2px);}
+.hist-session.active{border-color:rgba(138,126,110,.38);background:var(--c0b);box-shadow:0 0 0 3px rgba(138,126,110,.08);}
 
 .hist-session-icon{width:28px;height:28px;border-radius:8px;background:var(--c0b);border:1px solid rgba(138,126,110,.18);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .hist-session-icon svg{width:12px;height:12px;color:var(--c0a);}
+.hist-session.active .hist-session-icon{background:rgba(138,126,110,.28);}
 
 .hist-session-info{flex:1;min-width:0;}
 .hist-session-title{font-size:11px;font-weight:700;color:var(--t0);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px;}
@@ -321,19 +319,19 @@ html,body{height:100%;background:var(--bg);color:var(--t0);font-family:'Inter',s
 .hist-session-time{font-size:9px;color:var(--t2);}
 .hist-session-count{font-size:8px;font-weight:800;padding:1px 6px;border-radius:999px;background:var(--c0b);color:var(--c0a);border:1px solid rgba(138,126,110,.15);}
 
-.hist-chevron{width:13px;height:13px;color:var(--t2);flex-shrink:0;transition:transform 220ms cubic-bezier(.34,1.56,.64,1);}
+.hist-arrow{width:12px;height:12px;color:var(--t2);flex-shrink:0;opacity:.5;transition:opacity 160ms,transform 160ms;}
+.hist-session:hover .hist-arrow{opacity:1;transform:translateX(2px);}
+.hist-session.active .hist-arrow{opacity:1;color:var(--c0a);}
 
-/* Messages inside session */
-.hist-messages{display:flex;flex-direction:column;gap:6px;padding:0 10px 10px;border-top:1px solid var(--bd);}
-.hist-no-msg{font-size:10px;color:var(--t2);padding:10px 2px;font-style:italic;font-family:'Lora',serif;}
+/* ── Feed: history banner ── */
+.hist-feed-banner{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 14px;margin-bottom:6px;border-radius:12px;background:rgba(138,126,110,.1);border:1px solid rgba(138,126,110,.2);backdrop-filter:blur(10px);animation:fadeUp 300ms ease both;flex-wrap:wrap;gap:8px;}
+.hist-feed-banner-left{display:flex;align-items:center;gap:7px;font-size:10px;font-weight:700;color:var(--c0a);flex-wrap:wrap;gap:6px;}
+.hist-feed-banner-left svg{flex-shrink:0;opacity:.8;}
+.hist-feed-date{font-size:9px;font-weight:400;color:var(--t2);font-style:italic;}
 
-.hist-msg{display:flex;flex-direction:column;gap:2px;padding:8px 10px;border-radius:8px;}
-.hist-msg-in{background:rgba(138,126,110,.07);border:1px solid rgba(138,126,110,.14);align-items:flex-end;}
-.hist-msg-out{background:rgba(106,122,104,.06);border:1px solid rgba(106,122,104,.12);align-items:flex-start;}
+.hist-feed-back{display:flex;align-items:center;gap:5px;padding:5px 11px;border-radius:8px;border:1px solid rgba(138,126,110,.3);background:rgba(138,126,110,.12);color:var(--c0a);font-size:10px;font-weight:800;cursor:pointer;transition:all 150ms;white-space:nowrap;flex-shrink:0;}
+.hist-feed-back:hover{background:rgba(138,126,110,.22);border-color:rgba(138,126,110,.5);transform:translateX(-2px);}
+.hist-feed-back svg{flex-shrink:0;}
 
-.hist-msg-role{font-size:8px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--t2);margin-bottom:3px;}
-.hist-msg-in .hist-msg-role{color:var(--c0a);}
-.hist-msg-out .hist-msg-role{color:var(--c1a);}
-
-.hist-msg-text{font-size:11px;font-family:'Lora',serif;color:var(--t0);line-height:1.6;word-break:break-word;}
-.hist-msg-time{font-size:8px;color:var(--t2);margin-top:2px;}
+/* ── Feed: readonly hint (unused — kept for legacy) ── */
+.hist-feed-readonly{display:none;}

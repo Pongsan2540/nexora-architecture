@@ -140,7 +140,7 @@ const iinput=document.getElementById('iinput'),ibtn=document.getElementById('ibt
 const feed=document.getElementById('feed'),feedInner=document.getElementById('feedInner');
 const tlWrap=document.getElementById('tlWrap'),tlEmpty=document.getElementById('tlEmpty');
 const emptyState=document.getElementById('emptyState');
-let hist=[],busy=false,entryCount=0,firstMsg=true;
+let hist=[],busy=false,entryCount=0,firstMsg=true,currentSessionId=null;
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
 
 iinput.addEventListener('input',()=>{
@@ -160,6 +160,9 @@ async function doSearch(){
 
   if(busy)return;
   const q=iinput.value.trim();if(!q)return;
+
+  /* ── If viewing history: continue in same session, don't clear ── */
+  /* isViewingHistory stays true; feed keeps history messages above */
 
   /* ── FIRST VISIT DETECTION ── */
   const FIRST_VISIT_KEY = 'nexora_search_visited';
@@ -202,7 +205,8 @@ async function doSearch(){
       body: JSON.stringify({
         input: q,
         mode: currentMode,
-        user_search: user_search
+        user_search: user_search,
+        ...(currentSessionId ? { session_id: currentSessionId } : {})
       })
     });
 
@@ -230,9 +234,8 @@ async function doSearch(){
   */
 
   if(firstMsg){
-    emptyState.style.transition='opacity 280ms,transform 280ms';
-    emptyState.style.opacity='0';emptyState.style.transform='translateY(-8px)';
-    setTimeout(()=>emptyState.remove(),280);
+    const es=document.getElementById('emptyState');
+    if(es){es.style.transition='opacity 280ms,transform 280ms';es.style.opacity='0';es.style.transform='translateY(-8px)';setTimeout(()=>es.remove(),280);}
     firstMsg=false;
     const sep=document.createElement('div');
     sep.className='date-sep';
@@ -297,6 +300,9 @@ async function doSearch(){
   });
   cardsWrap.appendChild(grid);body.appendChild(cardsWrap);scrollFeed();
   addTimeline(q,resp.answer,id);
+  /* After first reply, we are now in live chat context */
+  isViewingHistory = false;
+  currentSessionId = null;
   busy=false;
 }
 
@@ -352,23 +358,24 @@ window.addEventListener('resize', bgR);
 /* ═══ HISTORY ═══ */
 const HISTORY_API = `${API_BASE}/nexora/api/history`;
 let historyLoaded = false;
+let isViewingHistory = false;   // true = feed กำลังแสดง history session
 
+/* ── helpers ── */
+function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* ── fetch list ── */
 async function fetchHistory(force = false) {
   if (historyLoaded && !force) return;
   const list = document.getElementById('histList');
-  const btn = document.getElementById('histRefresh');
+  const btn  = document.getElementById('histRefresh');
   if (btn) btn.classList.add('spinning');
   list.innerHTML = `<div class="hist-loading"><div class="cam-spinner"></div><span>Loading history…</span></div>`;
-
   try {
-    const res = await fetch(HISTORY_API, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' }
-    });
+    const res  = await fetch(HISTORY_API, { headers: { 'Content-Type': 'application/json' } });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     historyLoaded = true;
-    renderHistory(data);
+    renderHistoryList(data);
   } catch (err) {
     console.warn('[History] fetch failed:', err.message);
     list.innerHTML = `<div class="hist-error">ไม่สามารถโหลด history ได้<br><span>${err.message}</span></div>`;
@@ -377,79 +384,211 @@ async function fetchHistory(force = false) {
   }
 }
 
-function renderHistory(sessions) {
+/* ── render session list in right panel ── */
+function renderHistoryList(sessions) {
   const list = document.getElementById('histList');
   if (!sessions || sessions.length === 0) {
-    list.innerHTML = `<div class="hist-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg><span>ยังไม่มีประวัติการค้นหา</span></div>`;
+    list.innerHTML = `<div class="hist-empty">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+      <span>ยังไม่มีประวัติการค้นหา</span></div>`;
     return;
   }
-
   list.innerHTML = '';
-  /* เรียงจากใหม่ไปเก่า */
-  const sorted = [...sessions].sort((a, b) => new Date(b.time_stamp) - new Date(a.time_stamp));
+  const sorted = [...sessions].sort((a,b) => new Date(b.time_stamp) - new Date(a.time_stamp));
 
   sorted.forEach((session, si) => {
-    const wrap = document.createElement('div');
-    wrap.className = 'hist-session';
-    wrap.style.animationDelay = `${si * 40}ms`;
+    const ts         = session.time_stamp ? new Date(session.time_stamp) : null;
+    const tsStr      = ts ? ts.toLocaleString('th-TH',{day:'numeric',month:'short',year:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
+    const firstInput = (session.list_data||[]).find(m => m.type_message==='input');
+    const preview    = firstInput ? firstInput.text : session.name_title || '—';
+    const pairCount  = (session.list_data||[]).filter(m => m.type_message==='input').length;
 
-    const ts = session.time_stamp ? new Date(session.time_stamp) : null;
-    const tsStr = ts ? ts.toLocaleString('th-TH', { day: 'numeric', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
-
-    /* หา first user input สำหรับ preview */
-    const firstInput = (session.list_data || []).find(m => m.type_message === 'input');
-    const previewText = firstInput ? firstInput.text : session.name_title || '—';
-
-    /* นับ pairs */
-    const pairCount = (session.list_data || []).filter(m => m.type_message === 'input').length;
-
-    wrap.innerHTML = `
-      <div class="hist-session-header" onclick="toggleHistSession(this)">
-        <div class="hist-session-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
-        </div>
-        <div class="hist-session-info">
-          <div class="hist-session-title">${escHtml(previewText)}</div>
-          <div class="hist-session-meta">
-            <span class="hist-session-time">${tsStr}</span>
-            <span class="hist-session-count">${pairCount} คำถาม</span>
-          </div>
-        </div>
-        <svg class="hist-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6,9 12,15 18,9"/></svg>
+    const card = document.createElement('div');
+    card.className = 'hist-session';
+    card.style.animationDelay = `${si*45}ms`;
+    card.innerHTML = `
+      <div class="hist-session-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
       </div>
-      <div class="hist-messages" style="display:none;">
-        ${buildHistMessages(session.list_data || [])}
+      <div class="hist-session-info">
+        <div class="hist-session-title">${escHtml(preview)}</div>
+        <div class="hist-session-meta">
+          <span class="hist-session-time">${tsStr}</span>
+          <span class="hist-session-count">${pairCount} คำถาม</span>
+        </div>
       </div>
-    `;
-    list.appendChild(wrap);
+      <svg class="hist-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,18 15,12 9,6"/></svg>`;
+
+    card.addEventListener('click', () => loadSessionToFeed(session, card));
+    list.appendChild(card);
   });
 }
 
-function buildHistMessages(msgs) {
-  if (!msgs.length) return '<div class="hist-no-msg">ไม่มีข้อความ</div>';
-  return msgs.map(m => {
-    const isInput = m.type_message === 'input';
-    const t = m.time_search ? new Date(m.time_search).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) : '';
-    return `<div class="hist-msg ${isInput ? 'hist-msg-in' : 'hist-msg-out'}">
-      <div class="hist-msg-role">${isInput ? '👤 คุณ' : '⚡ Nexora'}</div>
-      <div class="hist-msg-text">${escHtml(m.text || '')}</div>
-      ${t ? `<div class="hist-msg-time">${t}</div>` : ''}
-    </div>`;
-  }).join('');
+/* ── load session → feed ── */
+function loadSessionToFeed(session, activeCard) {
+  document.querySelectorAll('.hist-session').forEach(c => c.classList.remove('active'));
+  activeCard.classList.add('active');
+
+  isViewingHistory = true;
+  currentSessionId = session.id_session || session._id || null;
+  busy = false;
+
+  feedInner.innerHTML = '';
+  firstMsg = false;
+
+  /* context banner */
+  const ts    = session.time_stamp ? new Date(session.time_stamp) : null;
+  const tsStr = ts ? ts.toLocaleString('th-TH',{weekday:'short',day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
+  const banner = document.createElement('div');
+  banner.className = 'hist-feed-banner';
+  banner.innerHTML = `
+    <div class="hist-feed-banner-left">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+      <span>${escHtml(session.name_title || tsStr)}</span>
+      <span class="hist-feed-date">${tsStr}</span>
+    </div>
+    <button class="hist-feed-back" onclick="exitHistoryView()">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15,18 9,12 15,6"/></svg>
+      Live Chat ใหม่
+    </button>`;
+  feedInner.appendChild(banner);
+
+  if (ts) {
+    const sep = document.createElement('div');
+    sep.className = 'date-sep';
+    sep.textContent = ts.toLocaleDateString('th-TH',{day:'numeric',month:'long',year:'numeric'});
+    feedInner.appendChild(sep);
+  }
+
+  /* render messages — assign IDs to user groups for timeline scroll */
+  const msgs = session.list_data || [];
+  const timelinePairs = [];
+  let pendingId = null, pendingText = '', pendingTime = null;
+
+  msgs.forEach((m, i) => {
+    const tDate = m.time_search ? new Date(m.time_search) : (ts || new Date());
+    const tStr  = tDate.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+    const group = document.createElement('div');
+    group.className = 'msg-group';
+    group.style.animationDelay = `${i*35}ms`;
+
+    if (m.type_message === 'input') {
+      const id = ++entryCount;
+      group.id = 'entry-' + id;
+      group.innerHTML = `
+        <div class="msg-user">
+          <div class="msg-user-bubble">${escHtml(m.text||'')}</div>
+          <div class="msg-user-time">${tStr}</div>
+        </div>`;
+      feedInner.appendChild(group);
+      pendingId = id; pendingText = m.text||''; pendingTime = tDate;
+
+    } else {
+      const aiText = m.text || '';
+      group.innerHTML = `
+        <div class="msg-ai">
+          <div class="msg-ai-av"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13,2 3,14 12,14 11,22 21,10 12,10"/></svg></div>
+          <div class="msg-ai-body">
+            <div class="msg-ai-bubble">
+              <div class="msg-ai-name">Glass AI</div>
+              <div class="msg-ai-txt">${aiText}</div>
+            </div>
+            <div class="msg-ai-time">${tStr}</div>
+          </div>
+        </div>`;
+      feedInner.appendChild(group);
+      if (pendingId !== null) {
+        timelinePairs.push({ q: pendingText, preview: aiText.replace(/<[^>]+>/g,'').slice(0,80)+'…', t: pendingTime, entryId: pendingId });
+        pendingId = null;
+      }
+    }
+  });
+
+  loadSessionTimeline(timelinePairs);
+  scrollFeed();
 }
 
-function escHtml(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
+/* ── exit history view → คืน live chat (blank session) ── */
+window.exitHistoryView = function() {
+  isViewingHistory = false;
+  currentSessionId = null;
+  feedInner.innerHTML = '';
+  firstMsg = true;
 
-window.toggleHistSession = function(header) {
-  const msgs = header.nextElementSibling;
-  const chevron = header.querySelector('.hist-chevron');
-  const isOpen = msgs.style.display !== 'none';
-  msgs.style.display = isOpen ? 'none' : 'flex';
-  chevron.style.transform = isOpen ? '' : 'rotate(180deg)';
-  header.closest('.hist-session').classList.toggle('open', !isOpen);
+  if (hist.length === 0) {
+    const es = document.createElement('div');
+    es.id = 'emptyState';
+    es.className = 'empty-state';
+    es.innerHTML = `
+      <div class="empty-avatar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13,2 3,14 12,14 11,22 21,10 12,10"/></svg></div>
+      <div class="empty-title">Hi, I am Nexora</div>
+      <div class="empty-sub">I can help you search for specific events using generic keywords.</div>`;
+    feedInner.appendChild(es);
+    firstMsg = true;
+  } else {
+    firstMsg = false;
+    const sep = document.createElement('div');
+    sep.className = 'date-sep';
+    sep.textContent = new Date().toLocaleDateString('th-TH',{day:'numeric',month:'long',year:'numeric'});
+    feedInner.appendChild(sep);
+  }
+
+  restoreLiveTimeline();
+  document.querySelectorAll('.hist-session').forEach(c => c.classList.remove('active'));
+  scrollFeed();
 };
+
+/* ── populate Journey from paired {q, preview, t, entryId} list ── */
+function loadSessionTimeline(pairs) {
+  tlWrap.querySelectorAll('.tlit').forEach(el => el.remove());
+  if (!pairs || pairs.length === 0) {
+    if (tlEmpty) tlEmpty.style.display = '';
+    return;
+  }
+  if (tlEmpty) tlEmpty.style.display = 'none';
+
+  /* newest first — same order as live addTimeline */
+  const ordered = [...pairs].reverse();
+  ordered.forEach((item, i) => {
+    const isLast = i === ordered.length - 1;
+    const div = document.createElement('div');
+    div.className = 'tlit' + (i === 0 ? ' active' : '');
+    div.innerHTML = `<div class="tlln"><div class="tldt ${i>0?'m':''}"></div>${!isLast?'<div class="tlcn"></div>':''}</div><div class="tlbd"><div class="tlq">${escHtml(item.q)}</div><div class="tlmt">${item.t.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})}</div><div class="tlpv">${item.preview}</div></div>`;
+    div.addEventListener('click', () => {
+      tlWrap.querySelectorAll('.tlit').forEach(el => el.classList.remove('active'));
+      div.classList.add('active');
+      const target = document.getElementById('entry-' + item.entryId);
+      if (target) target.scrollIntoView({behavior:'smooth', block:'start'});
+      rswitch('timeline');
+    });
+    tlWrap.appendChild(div);
+  });
+
+  rswitch('timeline');
+}
+
+/* ── restore live Journey after exiting history view ── */
+function restoreLiveTimeline() {
+  tlWrap.querySelectorAll('.tlit').forEach(el => el.remove());
+  if (hist.length === 0) {
+    if (tlEmpty) tlEmpty.style.display = '';
+    return;
+  }
+  if (tlEmpty) tlEmpty.style.display = 'none';
+  hist.forEach((item, i) => {
+    const isLast = i === hist.length - 1;
+    const div = document.createElement('div');
+    div.className = 'tlit' + (i === 0 ? ' active' : '');
+    div.innerHTML = `<div class="tlln"><div class="tldt ${i > 0 ? 'm' : ''}"></div>${!isLast ? '<div class="tlcn"></div>' : ''}</div><div class="tlbd"><div class="tlq">${escHtml(item.q)}</div><div class="tlmt">${item.t.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})}</div><div class="tlpv">${item.preview}</div></div>`;
+    div.addEventListener('click', () => {
+      tlWrap.querySelectorAll('.tlit').forEach(el => el.classList.remove('active'));
+      div.classList.add('active');
+      const target = document.getElementById('entry-' + item.entryId);
+      if (target) target.scrollIntoView({behavior:'smooth',block:'start'});
+    });
+    tlWrap.appendChild(div);
+  });
+}
 
 document.getElementById('histRefresh').addEventListener('click', () => fetchHistory(true));
 
