@@ -141,6 +141,62 @@ async def list_events():
     return cameras
 
 
+@api.get("/listCamStatus")
+async def list_events():
+
+    docs_event = list(collection_location.find())
+    cameras = []
+    for i in docs_event:
+        cam = {
+            "name": i.get("name"),
+            "id_cam": i.get("id_cam"),
+            "name_cam": i.get("name_cam"),
+            "type_event": i.get("type_event"),
+            "hls": i.get("hls"),
+        }
+
+        id_cam = i.get("id_cam")
+        if id_cam:
+            docs = list(collection_prompt.find({"id_cam": id_cam}))
+
+            print("----",id_cam)
+            pprint(docs)
+
+
+            if docs:
+                doc = docs[0]
+                config_detect = doc.get("config_detect")
+                config_prompt = doc.get("config_prompt")
+                model_detect = doc.get("model_detect")
+                model_prompt = doc.get("model_prompt")
+                use_detect = doc.get("use_detect")
+                use_prompt = doc.get("use_prompt")
+                use_sub_prompt = doc.get("use_sub_prompt")
+            else:
+                config_detect = None
+                config_prompt = None
+                model_detect = None
+                model_prompt = None
+                use_detect = None
+                use_prompt = None
+                use_sub_prompt = None
+
+            cam["config_detect"] = config_detect
+            cam["config_prompt"] = config_prompt
+            cam["model_detect"] = model_detect
+            cam["model_prompt"] = model_prompt
+            cam["use_detect"] = use_detect
+            cam["use_prompt"] = use_prompt
+            cam["use_sub_prompt"] = use_sub_prompt
+
+
+        cameras.append(cam)
+    #print("listCamStatus", cameras)
+    return cameras
+
+
+
+
 @api.get("/listEventCam")
 async def list_event(id_cam: str | None = None):
     query = {}
@@ -329,25 +385,20 @@ class Req(BaseModel):
     input: str
     mode: str
     user_search: bool   # 👈 เปลี่ยนเป็น bool
+    session_id: Optional[str] = None  # ✅ ไม่ส่งมาก็ไม่พัง
 
 @api.post("/dataSearch")
 async def search(req: Req):
 
     timestamp_input = datetime.now() 
-
     user_search = req.user_search
     input_search = req.input
+    id_history = req.session_id
+    print("id_history", id_history)
 
     message = "อย่ารอคอยโอกาส จงสร้างมัน"
     timestamp_output = datetime.now() 
 
-    data_json = {
-                    "input": input_search,
-                    "mode": req.mode,
-                    "user_search": user_search,
-                    "message": message
-                }
-    
     list_search_input = {
         "type_search": req.mode,
         "text": input_search,
@@ -366,50 +417,35 @@ async def search(req: Req):
         "tag": {}
     }
 
+    list_data = [list_search_input, list_search_output]
+    new_session_id = id_history  # default คือ session เดิม
 
-    print('----', user_search)
-
-    list_data = []
-    if user_search == True :
-        name_title = input_search
-        record_time = timestamp_input
-        list_data.append(list_search_input)
-        list_data.append(list_search_output)
-
+    if user_search and id_history is None:
+        # ✅ สร้าง session ใหม่
         search_data = {
-            "time_stamp": record_time,
-            "name_title": name_title,
+            "time_stamp": timestamp_input,
+            "name_title": input_search,
             "list_data": list_data
         }
-        
         pprint(search_data)
-
         result = collection_history_search.insert_one(search_data)
-        print("Inserted ID:", result.inserted_id)
-    else:
-        list_data.append(list_search_input)
-        list_data.append(list_search_output)
+        new_session_id = str(result.inserted_id)  # ✅ อยู่ใน if
+        print("Inserted ID:", new_session_id)
 
+    else:
+        # ✅ เพิ่มข้อมูลใน session เดิม
         collection_history_search.update_one(
-            {"_id": ObjectId("69c40740274442923ce2112e")},
-            {
-                "$push": {
-                    "list_data": {
-                        "$each": list_data
-                    }
-                }
-            }
+            {"_id": ObjectId(str(id_history))},
+            {"$push": {"list_data": {"$each": list_data}}}
         )
 
     return {
         "input": req.input,
         "mode": req.mode,
         "user_search": req.user_search,
-        "message": message
+        "message": message,
+        "session_id": new_session_id  # ✅ ส่งกลับเสมอ
     }
-
-
-
 
 
 from fastapi import FastAPI, HTTPException, Query

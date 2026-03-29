@@ -73,7 +73,7 @@ async function fetchCameras() {
   document.getElementById('statOffline').textContent = '—';
 
   try {
-  const res = await fetch(`${API_BASE}/nexora/api/listCam`, {
+  const res = await fetch(`${API_BASE}/nexora/api/listCamStatus`, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' }
   });
@@ -106,18 +106,36 @@ function renderCameras(cameras) {
     const item = document.createElement('div');
     item.className = `cam-item ${isOn ? 'is-online' : 'is-offline'}`;
     item.style.animationDelay = `${i * 45}ms`;
+
+    const fields = [
+      ['config_detect',  'c.detect'],
+      ['config_prompt',  'c.prompt'],
+      ['model_detect',   'm.detect'],
+      ['model_prompt',   'm.prompt'],
+      ['use_detect',     'u.detect'],
+      ['use_prompt',     'u.prompt'],
+      ['use_sub_prompt', 'u.sub'],
+    ];
+
+    const isEmpty = v => !v || v === 'None' || v === 'false';
+
     item.innerHTML = `
       <div class="cam-dot"></div>
       <div class="cam-info">
-        <div class="cam-name">${cam.name_cam || cam.id_cam || 'Unnamed'}</div>
-        <div class="cam-sub">
-          <span>${cam.id_cam || ''}</span>
-          ${cam.type_event ? `<span class="cam-type-badge">${cam.type_event}</span>` : ''}
-          ${cam.name ? `<span>· ${cam.name}</span>` : ''}
+        <div class="cam-name">${cam.name_cam || cam.id_cam || 'Unnamed'} — ${cam.type_event}</div>
+        <div class="cam-fields">
+          ${fields.map(([key, label]) => `
+            <div class="field-row">
+              <span class="field-key">${label}</span>
+              <span class="field-val ${isEmpty(cam[key]) ? 'bad' : 'ok'}">${cam[key] ?? '—'}</span>
+            </div>
+          `).join('')}
         </div>
       </div>
       <div class="cam-status-lbl">${isOn ? 'Online' : 'Offline'}</div>
     `;
+
+
     list.appendChild(item);
   });
 
@@ -142,6 +160,7 @@ const tlWrap=document.getElementById('tlWrap'),tlEmpty=document.getElementById('
 const emptyState=document.getElementById('emptyState');
 let hist=[],busy=false,entryCount=0,firstMsg=true,currentSessionId=null;
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
+const FIRST_VISIT_KEY = 'nexora_search_visited';
 
 iinput.addEventListener('input',()=>{
   iinput.style.height='auto';
@@ -160,48 +179,18 @@ async function doSearch(){
 
   if(busy)return;
   const q=iinput.value.trim();if(!q)return;
+  busy=true;
 
-  /* ── If viewing history: continue in same session, don't clear ── */
-  /* isViewingHistory stays true; feed keeps history messages above */
-
-  /* ── FIRST VISIT DETECTION ── */
-  const FIRST_VISIT_KEY = 'nexora_search_visited';
-  let _firstVisitDone = false; // เพิ่มบรรทัดนี้
-
-  /* PAGE TRANSITION */
-  const veil=document.getElementById('pageVeil');
-
-  // const isFirstVisit = !localStorage.getItem(FIRST_VISIT_KEY);
-  // ใช้ sessionStorage — clear ทุกครั้งที่ปิด tab หรือ refresh
-  const isFirstVisit = !_firstVisitDone && !sessionStorage.getItem(FIRST_VISIT_KEY);
-
-  let user_search;
-  if (isFirstVisit) {
-    _firstVisitDone = true;
-    sessionStorage.setItem(FIRST_VISIT_KEY, '1');
-    console.log('👋 First visit!');
-    user_search = true;
-  } else {
-    console.log('🔁 Returning visitor');
-    user_search = false;
-  }
-
-  console.log("iinput:", iinput.value);
+  // ✅ user_search = true เฉพาะครั้งแรก (ยังไม่มี session)
+  const user_search = !currentSessionId;
+  console.log("currentSessionId:", currentSessionId, "| user_search:", user_search);
   console.log("currentMode:", currentMode);
 
   let data;
   try {
-    const q = iinput.value.trim();
-
-    const url = currentMode === "manager"
-      ? `${API_BASE}/nexora/api/dataSearch`
-      : `${API_BASE}/nexora/api/dataSearch`;
-
-    const res = await fetch(url, {
+    const res = await fetch(`${API_BASE}/nexora/api/dataSearch`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         input: q,
         mode: currentMode,
@@ -211,19 +200,26 @@ async function doSearch(){
     });
 
     if (!res.ok) throw new Error(`API error: ${res.status}`);
-
     data = await res.json();
-
-    console.log("mode:", currentMode);
     console.log("response:", data);
+
+    // ✅ เก็บ session_id ที่ได้จาก server (ทั้ง insert ใหม่ และ update เดิม)
+    if (data.session_id) {
+      currentSessionId = data.session_id;
+    }
+
+    // ✅ refresh History แบบ silent (ไม่กระพริบ ไม่ reset selection)
+    historyLoaded = false;
+    fetchHistory(true, true);
 
   } catch (err) {
     console.error("fetch error:", err);
+    busy = false;
+    return;
   }
 
   const inputValue = data.message;
 
-  busy=true;
   iinput.value='';iinput.style.height='auto';ibtn.classList.remove('vis');
 
 
@@ -300,9 +296,7 @@ async function doSearch(){
   });
   cardsWrap.appendChild(grid);body.appendChild(cardsWrap);scrollFeed();
   addTimeline(q,resp.answer,id);
-  /* After first reply, we are now in live chat context */
   isViewingHistory = false;
-  currentSessionId = null;
   busy=false;
 }
 
@@ -316,20 +310,31 @@ function scrollFeed(){setTimeout(()=>feed.scrollTo({top:feed.scrollHeight,behavi
 
 function addTimeline(q,html,entryId){
   if(tlEmpty)tlEmpty.style.display='none';
-  hist.unshift({q,preview:html.replace(/<[^>]+>/g,'').slice(0,80)+'…',t:new Date(),entryId});
-  tlWrap.querySelectorAll('.tlit').forEach(el=>el.remove());
-  hist.forEach((item,i)=>{
-    const isLast=i===hist.length-1;
-    const div=document.createElement('div');
-    div.className='tlit'+(i===0?' active':'');
-    div.innerHTML=`<div class="tlln"><div class="tldt ${i>0?'m':''}"></div>${!isLast?'<div class="tlcn"></div>':''}</div><div class="tlbd"><div class="tlq">${item.q}</div><div class="tlmt">${item.t.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})}</div><div class="tlpv">${item.preview}</div></div>`;
-    div.addEventListener('click',()=>{tlWrap.querySelectorAll('.tlit').forEach(el=>el.classList.remove('active'));div.classList.add('active');const target=document.getElementById('entry-'+item.entryId);if(target)target.scrollIntoView({behavior:'smooth',block:'start'});
-    rswitch('timeline');
-    sessionStorage.removeItem(FIRST_VISIT_KEY);
-    firstVisitDone = false;
-    });
-    tlWrap.appendChild(div);
+  const item={q,preview:html.replace(/<[^>]+>/g,'').slice(0,80)+'…',t:new Date(),entryId};
+  hist.unshift(item);
+
+  // ✅ ลด active บน item เดิมก่อน
+  tlWrap.querySelectorAll('.tlit').forEach(el=>{
+    el.classList.remove('active');
+    // เพิ่มเส้นเชื่อมถ้ายังไม่มี
+    if(!el.querySelector('.tlcn')){
+      const ln=el.querySelector('.tlln');
+      if(ln){const cn=document.createElement('div');cn.className='tlcn';ln.appendChild(cn);}
+    }
   });
+
+  // ✅ สร้าง item ใหม่แล้ว prepend (ไม่ rebuild ทั้งหมด)
+  const div=document.createElement('div');
+  div.className='tlit active';
+  div.innerHTML=`<div class="tlln"><div class="tldt"></div><div class="tlcn"></div></div><div class="tlbd"><div class="tlq">${escHtml(q)}</div><div class="tlmt">${item.t.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})}</div><div class="tlpv">${item.preview}</div></div>`;
+  div.addEventListener('click',()=>{
+    tlWrap.querySelectorAll('.tlit').forEach(el=>el.classList.remove('active'));
+    div.classList.add('active');
+    const target=document.getElementById('entry-'+entryId);
+    if(target)target.scrollIntoView({behavior:'smooth',block:'start'});
+    rswitch('timeline');
+  });
+  tlWrap.prepend(div);
 }
 
 window.toggleRight = function() {
@@ -349,7 +354,10 @@ window.rswitch=function(tab){
   document.getElementById('ph').classList.toggle('on',tab==='history');
   if(tab==='history') fetchHistory();
 };
-window.addEventListener('load', fetchCameras);
+window.addEventListener('load', () => {
+  fetchCameras();
+  fetchHistory();  // ✅ โหลด history ทันทีที่เปิดหน้า
+});
 window.addEventListener('resize', bgR);
 
 
@@ -364,18 +372,24 @@ let isViewingHistory = false;   // true = feed กำลังแสดง histo
 function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 /* ── fetch list ── */
-async function fetchHistory(force = false) {
+async function fetchHistory(force = false, silent = false) {
   if (historyLoaded && !force) return;
   const list = document.getElementById('histList');
   const btn  = document.getElementById('histRefresh');
+
   if (btn) btn.classList.add('spinning');
-  list.innerHTML = `<div class="hist-loading"><div class="cam-spinner"></div><span>Loading history…</span></div>`;
+
+  // ✅ ถ้า silent → ไม่แสดง loading spinner (ไม่กระพริบ)
+  if (!silent) {
+    list.innerHTML = `<div class="hist-loading"><div class="cam-spinner"></div><span>Loading history…</span></div>`;
+  }
+
   try {
     const res  = await fetch(HISTORY_API, { headers: { 'Content-Type': 'application/json' } });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     historyLoaded = true;
-    renderHistoryList(data);
+    renderHistoryList(data, silent);  // ✅ ส่ง silent ไปด้วย
   } catch (err) {
     console.warn('[History] fetch failed:', err.message);
     list.innerHTML = `<div class="hist-error">ไม่สามารถโหลด history ได้<br><span>${err.message}</span></div>`;
@@ -384,9 +398,9 @@ async function fetchHistory(force = false) {
   }
 }
 
-/* ── render session list in right panel ── */
-function renderHistoryList(sessions) {
+function renderHistoryList(sessions, silent = false) {
   const list = document.getElementById('histList');
+
   if (!sessions || sessions.length === 0) {
     list.innerHTML = `<div class="hist-empty">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
@@ -405,6 +419,7 @@ function renderHistoryList(sessions) {
 
     const card = document.createElement('div');
     card.className = 'hist-session';
+    card.dataset.id = session._id;  // ✅ เพิ่ม data-id ให้ทุก card
     card.style.animationDelay = `${si*45}ms`;
     card.innerHTML = `
       <div class="hist-session-icon">
@@ -422,6 +437,13 @@ function renderHistoryList(sessions) {
     card.addEventListener('click', () => loadSessionToFeed(session, card));
     list.appendChild(card);
   });
+
+  // ✅ silent refresh → คืน active ให้ session เดิม ไม่ reset selection
+  if (silent && currentSessionId) {
+    document.querySelectorAll('.hist-session').forEach(el => {
+      el.classList.toggle('active', el.dataset.id === currentSessionId);
+    });
+  }
 }
 
 /* ── load session → feed ── */
@@ -432,6 +454,9 @@ function loadSessionToFeed(session, activeCard) {
   isViewingHistory = true;
   currentSessionId = session.id_session || session._id || null;
   busy = false;
+
+
+  console.log("tDate.....:", session._id);
 
   feedInner.innerHTML = '';
   firstMsg = false;
@@ -447,7 +472,7 @@ function loadSessionToFeed(session, activeCard) {
       <span>${escHtml(session.name_title || tsStr)}</span>
       <span class="hist-feed-date">${tsStr}</span>
     </div>
-    <button class="hist-feed-back" onclick="exitHistoryView()">
+    <button class="hist-feed-back"  onclick="navigateTo('ai-search.html')">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15,18 9,12 15,6"/></svg>
       Live Chat ใหม่
     </button>`;
@@ -473,6 +498,7 @@ function loadSessionToFeed(session, activeCard) {
     group.style.animationDelay = `${i*35}ms`;
 
     if (m.type_message === 'input') {
+
       const id = ++entryCount;
       group.id = 'entry-' + id;
       group.innerHTML = `
@@ -622,7 +648,3 @@ modeTrack.addEventListener('click', () => setMode(currentMode === 'search' ? 'ma
 modeLblSearch.addEventListener('click', () => setMode('search'));
 modeLblManager.addEventListener('click', () => setMode('manager'));
 modeLblSearch.classList.add('active');
-
-window.addEventListener('beforeunload', () => {
-  sessionStorage.removeItem(FIRST_VISIT_KEY);
-});
